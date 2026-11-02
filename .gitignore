@@ -1,0 +1,9 @@
+__pycache__/
+*.h5ad
+*.h5
+dados/*.mtx
+dados/*.tsv
+dados/*.gz
+resultados/
+figuras/
+.ipynb_checkpoints/
