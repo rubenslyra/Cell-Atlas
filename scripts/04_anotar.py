@@ -42,7 +42,21 @@ marcadores = {
     "Monócitos": ["CD14", "LYZ"],
     "Células NK": ["NKG7", "GNLY"],
 }
-sc.pl.umap(adata, color=list(marcadores.keys()), show=False)
+marcadores_flat = []
+for genes in marcadores.values():
+    marcadores_flat.extend(genes)
+# Remove duplicates while preserving order
+marcadores_flat = list(dict.fromkeys(marcadores_flat))
+# Use raw if available for marker visualization
+if adata.raw is not None:
+    adata_vis = adata.raw.to_adata()
+    adata_vis.obs = adata.obs
+    adata_vis.obsm = adata.obsm
+    adata_vis.uns = adata.uns
+else:
+    adata_vis = adata
+valid_markers = [g for g in marcadores_flat if g in adata_vis.var_names]
+sc.pl.umap(adata_vis, color=valid_markers, ncols=4, show=False)
 plt.savefig("figuras/marcadores_classicos.png", dpi=150, bbox_inches="tight")
 plt.close()
 
