@@ -3,13 +3,15 @@
 Conjunto: PBMC3k — Células mononucleares de sangue periférico humano
 Fonte original: 10x Genomics (2016) — Chromium Single Cell 3' Solution
 Disponível via: Scanpy Data Repository
-Acesso alternativo: NCBI GEO — GSE139324
+Página oficial: https://www.10xgenomics.com/datasets ("3k PBMCs from a Healthy Donor")
 
 Descrição: ~2.700 células imunes humanas. É o conjunto de referência
 padrão da área, amplamente utilizado para validação de métodos de
 análise de sequenciamento de RNA de célula única.
 
 Referências:
+- Zheng, G. X. Y. et al. (2017) Massively parallel digital transcriptional
+  profiling of single cells. Nat. Commun. 8:14049. DOI:10.1038/ncomms14049
 - 10x Genomics: Official PBMC3k Dataset
 - Scanpy: Wolf et al. (2018) SCANPY: large-scale single-cell gene
   expression data analysis. Genome Biology 19:15. DOI:10.1186/s13059-017-1382-0

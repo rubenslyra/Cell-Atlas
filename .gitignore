@@ -1,4 +1,10 @@
 __pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+*.tmp
 *.h5ad
 *.h5
 dados/*.mtx

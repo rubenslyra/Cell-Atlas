@@ -1,0 +1,33 @@
+name: Validate docs
+
+on:
+  push:
+    branches: ["main", "develop"]
+    paths:
+      - "docs/**"
+      - "tools/check_docs.py"
+      - ".github/workflows/validate-docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "tools/check_docs.py"
+      - ".github/workflows/validate-docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate docs bundle
+        run: python tools/check_docs.py

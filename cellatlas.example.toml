@@ -1,0 +1,24 @@
+# Exemplo de configuração do Cell-Atlas.
+# Uso: cellatlas run-all --config cellatlas.example.toml
+# Qualquer campo de cellatlas.core.config.Config pode ser sobrescrito aqui;
+# chaves desconhecidas geram erro (evita typos silenciosos).
+
+[cellatlas]
+data_dir = "dados"
+figures_dir = "figuras"
+results_dir = "resultados"
+random_state = 0
+
+# Controle de qualidade
+min_genes_per_cell = 200
+max_genes_per_cell = 2500
+max_mito_percent = 5.0
+
+# Agrupamento
+n_neighbors = 15
+n_pcs = 10
+resolutions = [0.2, 0.4, 0.6, 1.0]
+
+# Anotação
+target_resolution = "leiden_0.6"
+min_annotation_score = 0.5

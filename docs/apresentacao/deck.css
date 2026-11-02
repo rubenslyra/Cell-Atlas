@@ -1,0 +1,30 @@
+/* Slide viewer: a fixed 1920×1080 canvas scaled to fit the viewport. */
+html, body { height: 100%; }
+body.deck { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: #0b1218; color: #e5ecf1; }
+.deck-bar { display: flex; align-items: center; gap: 12px; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); padding-top: calc(10px + env(safe-area-inset-top, 0px)); border-bottom: 1px solid #22313b; flex-wrap: wrap; }
+.deck-bar a { color: #9fdcd6; }
+.deck-bar .title { font-weight: 600; margin-right: auto; }
+.deck-bar button { border: 1px solid #2a3a46; background: #142430; color: #e5ecf1; border-radius: 8px; padding: 6px 12px; font: 600 .875rem var(--font-body); cursor: pointer; }
+.deck-bar button:hover { border-color: #5fd0c6; }
+.deck-bar button[aria-pressed="true"] { background: #0f6e6a; border-color: #0f6e6a; }
+.counter { font: 600 .875rem var(--font-mono); font-variant-numeric: tabular-nums; color: #8fa3b0; }
+
+.viewport { position: relative; overflow: hidden; min-height: 0; }
+.stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; box-shadow: 0 10px 40px rgba(0, 0, 0, .45); }
+.stage .slide { position: absolute; inset: 0; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden; }
+.stage .slide[hidden] { display: none !important; }
+.stage .slide h1, .stage .slide h2, .stage .slide h3, .stage .slide p { margin: 0; }
+.stage .slide img { max-width: none; }
+.stage .slide table { border-collapse: collapse; width: 100%; min-width: 0; }
+.stage .slide th, .stage .slide td { padding: .35em .6em; border-bottom: 1px solid #d6dedb; }
+.stage .slide th { font-weight: 600; background: none; }
+.stage .slide aside { display: none; }
+
+.notes { border-top: 1px solid #22313b; background: #101b23; padding: 14px max(16px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); max-height: 28vh; overflow-y: auto; font-size: 1.05rem; line-height: 1.6; color: #cdd8df; }
+.notes b { color: #5fd0c6; font: 600 .75rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+.nav-zone { position: absolute; top: 0; bottom: 0; width: 18%; border: 0; background: transparent; cursor: pointer; }
+.nav-zone.prev { left: 0; } .nav-zone.next { right: 0; }
+.nav-zone:focus-visible { outline: 2px solid #5fd0c6; outline-offset: -4px; }
+:fullscreen .deck-bar, :fullscreen .notes { display: none; }
+body.deck:fullscreen { grid-template-rows: minmax(0, 1fr); }
