@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Cell-Atlas — slides do vídeo</title>
+    <meta name="description" content="Sete slides do vídeo de apresentação do Cell-Atlas, com a narração nas notas.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'none'; base-uri 'self'; form-action 'none'; object-src 'none'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap">
+    <link rel="stylesheet" href="../assets/site.css">
+    <link rel="stylesheet" href="deck.css">
+  </head>
+  <body class="deck">
+    <div class="deck-bar">
+      <a href="../">Cell-Atlas</a>
+      <span class="title">Slides do vídeo</span>
+      <span class="counter" id="counter" aria-live="polite">1 / 7</span>
+      <button type="button" id="prev" aria-label="Slide anterior">←</button>
+      <button type="button" id="next" aria-label="Próximo slide">→</button>
+      <button type="button" id="notes-btn" aria-pressed="true">Notas (N)</button>
+      <button type="button" id="full-btn">Tela cheia (F)</button>
+      <a href="../treino/#ensaio">Ensaiar com cronômetro</a>
+    </div>
+    <div class="viewport" id="viewport">
+      <div class="stage" id="stage">
+<section id="cover" class="slide" aria-roledescription="slide" aria-label="1 de 7" data-transition="fade" style="background:#0f1b24;color:#eef2ef;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:grid;grid-template-columns:1fr 820px;gap:64px;align-items:center">
+<div style="display:flex;flex-direction:column;gap:32px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;letter-spacing:4px;text-transform:uppercase;color:#4fc2b9">Cell-Atlas · scRNA-seq</p>
+<h1 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:88px;font-weight:700;line-height:1.05;color:#eef2ef">Dá para descobrir os tipos de células do sangue só pelos genes?</h1>
+<p style="font-size:34px;line-height:1.4;color:#b9c7cf">Sem dizer ao computador o que procurar. Com um único comando reprodutível.</p>
+</div>
+<div style="background:#fbfbf8;border-radius:24px;padding:28px">
+<img src="../assets/img/umap_tipos_celulares.png" alt="Mapa UMAP das 2.638 células coloridas pelos 7 tipos celulares sugeridos: células T, B, NK, monócitos CD14+ e FCGR3A+, dendríticas e plaquetas" style="width:764px;height:552px;object-fit:contain">
+</div>
+<aside>Uma gota de sangue tem dezenas de tipos de células imunes. A pergunta é: dá para descobrir quais são olhando só para os genes que cada célula usa, sem dizer ao computador o que procurar? Esse é o Cell-Atlas.</aside>
+</section>
+<section id="problema" class="slide" aria-roledescription="slide" aria-label="2 de 7" data-transition="fade" style="background:#f4f6f3;color:#14212b;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;letter-spacing:4px;text-transform:uppercase;color:#0f6e6a">O problema</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#14212b">Um dado enorme e nenhuma etiqueta</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:12px;border-top:4px solid #14212b;padding:32px 0 0 0">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:120px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#14212b">2.700</p>
+<p style="font-size:32px;color:#4a5866">células do sangue de um doador saudável</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:4px solid #14212b;padding:32px 0 0 0">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:120px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#14212b">32.738</p>
+<p style="font-size:32px;color:#4a5866">genes medidos em cada célula</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:4px solid #0f6e6a;padding:32px 0 0 0">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:120px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#0f6e6a">88 mi</p>
+<p style="font-size:32px;color:#4a5866">números, sem nenhum rótulo dizendo que célula é qual</p>
+</div>
+</div>
+<p style="font-size:32px;color:#4a5866">Dados: PBMC3k, 10x Genomics (Zheng et al., 2017), referência pública da área.</p>
+<aside>O dado vem de sequenciamento de RNA de célula única: 2.700 células, e para cada uma, a atividade de mais de 32 mil genes. São quase 90 milhões de números, e nenhum rótulo dizendo que célula é qual.</aside>
+</section>
+<section id="pipeline" class="slide" aria-roledescription="slide" aria-label="3 de 7" data-transition="fade" style="background:#f4f6f3;color:#14212b;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;letter-spacing:4px;text-transform:uppercase;color:#0f6e6a">O pipeline</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#14212b">Cinco etapas, do dado bruto ao mapa</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:16px;background:#fbfbf8;border:1px solid #d6dedb;border-radius:16px;padding:32px 28px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#0f6e6a">01</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:32px;font-weight:700;line-height:1.15;color:#14212b">Controle de qualidade</h3>
+<p style="font-size:26px;line-height:1.4;color:#4a5866">Tira células vazias, duplas ou morrendo: restam 2.638</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#fbfbf8;border:1px solid #d6dedb;border-radius:16px;padding:32px 28px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#0f6e6a">02</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:32px;font-weight:700;line-height:1.15;color:#14212b">Normalização</h3>
+<p style="font-size:26px;line-height:1.4;color:#4a5866">Escala comparável e os 2.000 genes mais informativos</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#fbfbf8;border:1px solid #d6dedb;border-radius:16px;padding:32px 28px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#0f6e6a">03</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:32px;font-weight:700;line-height:1.15;color:#14212b">PCA</h3>
+<p style="font-size:26px;line-height:1.4;color:#4a5866">Comprime 2.000 dimensões em 10 componentes</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#fbfbf8;border:1px solid #d6dedb;border-radius:16px;padding:32px 28px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#0f6e6a">04</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:32px;font-weight:700;line-height:1.15;color:#14212b">Grafo e Leiden</h3>
+<p style="font-size:26px;line-height:1.4;color:#4a5866">Liga cada célula às 15 mais parecidas e acha comunidades</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#0f6e6a;border:1px solid #0f6e6a;border-radius:16px;padding:32px 28px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#cdeeea">05</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:32px;font-weight:700;line-height:1.15;color:#fbfbf8">Anotação</h3>
+<p style="font-size:26px;line-height:1.4;color:#e3f4f1">Marcadores clássicos dão nome a cada grupo</p>
+</div>
+</div>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#4a5866">$ cellatlas run-all   ·   semente fixa   ·   mesmo resultado em qualquer máquina</p>
+<aside>Construí um pipeline em cinco etapas. Primeiro, controle de qualidade: descarto células danificadas e ficam 2.638. Depois normalizo, seleciono os 2.000 genes mais informativos e comprimo tudo em 10 componentes principais. Em seguida, ligo cada célula às 15 mais parecidas, formando uma rede, e o algoritmo Leiden encontra as comunidades nessa rede.</aside>
+</section>
+<section id="resolucoes" class="slide" aria-roledescription="slide" aria-label="4 de 7" data-transition="fade" style="background:#fbfbf8;color:#14212b;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;letter-spacing:4px;text-transform:uppercase;color:#0f6e6a">Resolução do Leiden</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#14212b">A resolução funciona como um zoom</h2>
+</div>
+<img src="../assets/img/umap_todas_resolucoes.png" alt="Quatro mapas UMAP das mesmas células agrupadas nas resoluções 0,2, 0,4, 0,6 e 1,0, com 6, 9, 10 e 13 grupos" style="width:1664px;height:444px;object-fit:contain">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:24px">
+<p style="font-size:30px;text-align:center;padding:16px;border:1px solid #d6dedb;border-radius:12px;color:#4a5866"><b>0,2</b> → 6 grupos</p>
+<p style="font-size:30px;text-align:center;padding:16px;border:1px solid #d6dedb;border-radius:12px;color:#4a5866"><b>0,4</b> → 9 grupos</p>
+<p style="font-size:30px;text-align:center;padding:16px;border:2px solid #0f6e6a;border-radius:12px;background:#dcefed;color:#14212b"><b>0,6</b> → 10 grupos, escolhida</p>
+<p style="font-size:30px;text-align:center;padding:16px;border:1px solid #d6dedb;border-radius:12px;color:#4a5866"><b>1,0</b> → 13 grupos</p>
+</div>
+<aside>O Leiden tem um botão de zoom, a resolução. Em 0,2 vejo 6 grupos, as grandes famílias. Em 1,0, 13 grupos, já com subtipos. Escolhi 0,6, com 10 grupos: detalhe suficiente sem fragmentar populações.</aside>
+</section>
+<section id="validacao" class="slide" aria-roledescription="slide" aria-label="5 de 7" data-transition="fade" style="background:#f4f6f3;color:#14212b;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;letter-spacing:4px;text-transform:uppercase;color:#0f6e6a">A prova</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#14212b">Os grupos são tipos celulares reais</h2>
+</div>
+<div style="display:grid;grid-template-columns:900px 1fr;gap:64px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="background:#fbfbf8;border:1px solid #d6dedb;border-radius:16px;padding:16px">
+<img src="../assets/img/marcadores_4.png" alt="Quatro mapas UMAP: CD3E acende nas células T, MS4A1 nas B, LYZ nos monócitos e NKG7 nas NK" style="width:866px;height:547px;object-fit:contain">
+</div>
+<p style="font-size:24px;color:#4a5866">Cada gene marcador acende só na região do seu tipo: CD3E (T), MS4A1 (B), LYZ (monócitos), NKG7 (NK).</p>
+</div>
+<table style="font-size:28px;color:#14212b;font-family:'IBM Plex Sans', Arial, sans-serif">
+<tr><th style="width:70%;text-align:left">Tipo encontrado</th><th style="width:30%;text-align:right">Células</th></tr>
+<tr><td>Células T</td><td style="text-align:right">1.464</td></tr>
+<tr><td>Monócitos CD14+</td><td style="text-align:right">443</td></tr>
+<tr><td>Células B</td><td style="text-align:right">344</td></tr>
+<tr><td>Monócitos FCGR3A+</td><td style="text-align:right">196</td></tr>
+<tr><td>Células NK</td><td style="text-align:right">142</td></tr>
+<tr><td>Dendríticas</td><td style="text-align:right">35</td></tr>
+<tr style="background:#dcefed"><td>Plaquetas, 0,5% da amostra</td><td style="text-align:right">14</td></tr>
+</table>
+</div>
+<aside>Agora a parte que convence. Para cada grupo, o programa mede genes-marcadores clássicos da imunologia e sugere um nome. Ele reencontrou células T, B, NK, dois tipos de monócitos, células dendríticas e até 14 plaquetas — 0,5% da amostra. É o mesmo resultado da análise de referência da área.</aside>
+</section>
+<section id="engenharia" class="slide" aria-roledescription="slide" aria-label="6 de 7" data-transition="fade" style="background:#0f1b24;color:#eef2ef;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;letter-spacing:4px;text-transform:uppercase;color:#4fc2b9">Engenharia</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#eef2ef">Qualquer pessoa reproduz com um comando</h2>
+</div>
+<div style="display:grid;grid-template-columns:860px 1fr;gap:64px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:12px;background:#08121a;border:1px solid #2a3a46;border-radius:16px;padding:40px;font-family:'JetBrains Mono', 'Courier New', monospace">
+<p style="font-size:28px;color:#8fa3b0">$ pip install -e .</p>
+<p style="font-size:28px;color:#8fa3b0">$ cellatlas run-all</p>
+<p style="font-size:28px;color:#eef2ef">resolution 0.6 → 10 groups</p>
+<p style="font-size:28px;color:#4fc2b9">Pipeline completed successfully</p>
+<p style="font-size:28px;color:#8fa3b0">$ pytest</p>
+<p style="font-size:28px;color:#4fc2b9">13 passed</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:700;color:#eef2ef">Pacote Python instalável</h3>
+<p style="font-size:26px;color:#b9c7cf">Camadas de dados, análise, configuração e CLI</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:700;color:#eef2ef">Parâmetros por arquivo</h3>
+<p style="font-size:26px;color:#b9c7cf">TOML ou JSON, sem editar código</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:700;color:#eef2ef">Semente fixa</h3>
+<p style="font-size:26px;color:#b9c7cf">O mesmo resultado a cada execução</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:700;color:#eef2ef">Testes automatizados</h3>
+<p style="font-size:26px;color:#b9c7cf">Protegem os marcadores, a anotação e a CLI</p>
+</div>
+</div>
+</div>
+<aside>Por trás disso há engenharia: um pacote Python instalável, uma linha de comando, parâmetros por arquivo, semente fixa para o resultado ser sempre o mesmo e testes automatizados. Qualquer pessoa clona, roda um comando e obtém exatamente estas figuras.</aside>
+</section>
+<section id="fechamento" class="slide" aria-roledescription="slide" aria-label="7 de 7" data-transition="fade" style="background:#0f6e6a;color:#fbfbf8;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:48px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;letter-spacing:4px;text-transform:uppercase;color:#cdeeea">O que levo daqui</p>
+<h1 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:80px;font-weight:700;line-height:1.12;color:#fbfbf8">Transformar um dado enorme e sem rótulos numa resposta que um especialista reconhece, com código que qualquer pessoa reproduz.</h1>
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:34px;color:#fbfbf8">github.com/rubenslyra/Cell-Atlas</p>
+<p style="font-size:30px;color:#cdeeea">Rubens Lyra</p>
+</div>
+<aside>O que levo daqui: transformar um dado enorme e sem rótulos em uma resposta que um especialista reconhece, com código que outra pessoa consegue reproduzir. O código está no GitHub. Obrigado.</aside>
+</section>
+      </div>
+      <button type="button" class="nav-zone prev" id="zone-prev" aria-label="Slide anterior"></button>
+      <button type="button" class="nav-zone next" id="zone-next" aria-label="Próximo slide"></button>
+    </div>
+    <div class="notes" id="notes" aria-live="polite"><b>Narração</b><span id="notes-text"></span></div>
+    <script src="deck.js" defer></script>
+  </body>
+</html>

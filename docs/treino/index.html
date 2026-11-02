@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Cell-Atlas em voz alta — treino de apresentação</title>
+    <meta name="description" content="Treinador de voz do Cell-Atlas: tire dúvidas sobre os resultados, simule uma entrevista técnica e ensaie o roteiro do vídeo.">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src https://api.anthropic.com; base-uri 'self'; form-action 'none'; object-src 'none'">
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../assets/site.css">
+    <link rel="stylesheet" href="treino.css">
+    <script src="../assets/theme.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#app">Pular para o treino</a>
+    <header class="site-header">
+      <div class="wrap nav">
+        <a class="brand" href="../">
+          <img class="brand-mark" src="../assets/img/favicon.svg" alt="" width="28" height="28">
+          Cell-Atlas
+        </a>
+        <ul class="nav-links" aria-label="Páginas">
+          <li><a href="../">Projeto</a></li>
+          <li><a href="./" aria-current="page">Treino</a></li>
+          <li><a href="../apresentacao/">Slides</a></li>
+        </ul>
+        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro/escuro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="app" class="wrap tr-main">
+      <header class="tr-head">
+        <div>
+          <p class="eyebrow">Treino de apresentação</p>
+          <h1>Cell-Atlas, em voz alta</h1>
+        </div>
+        <div class="tr-modes" role="tablist" aria-label="Modo de treino">
+          <button type="button" role="tab" id="m-ask" aria-controls="p-ask" aria-selected="true">Perguntar</button>
+          <button type="button" role="tab" id="m-int" aria-controls="p-int" aria-selected="false">Entrevista</button>
+          <button type="button" role="tab" id="m-reh" aria-controls="p-reh" aria-selected="false">Ensaiar roteiro</button>
+        </div>
+      </header>
+
+      <p class="notice" id="mic-notice" hidden></p>
+
+      <div class="tr-layout">
+        <!-- ============ PERGUNTAR ============ -->
+        <section class="tr-panel" id="p-ask" role="tabpanel" aria-labelledby="m-ask">
+          <div class="tr-log" id="ask-log" aria-live="polite"></div>
+          <div class="tr-chips" id="ask-chips"></div>
+          <div class="tr-composer">
+            <button type="button" class="tr-mic" id="ask-mic" aria-label="Perguntar pelo microfone" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+            </button>
+            <label class="sr-only" for="ask-input">Sua pergunta</label>
+            <textarea id="ask-input" rows="2" placeholder="Pergunte sobre o projeto… (Enter envia)"></textarea>
+            <button type="button" class="btn btn-primary" id="ask-send">Enviar</button>
+          </div>
+        </section>
+
+        <!-- ============ ENTREVISTA ============ -->
+        <section class="tr-panel" id="p-int" role="tabpanel" aria-labelledby="m-int" hidden>
+          <div class="int-top">
+            <span class="pill" id="int-progress">Pergunta 1 de 8</span>
+            <span class="pill" id="int-score-total">Pontuação: —</span>
+          </div>
+          <p class="int-q" id="int-q">Toque em “Começar” para ouvir a primeira pergunta.</p>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="int-start">Começar</button>
+            <button type="button" class="btn btn-ghost" id="int-repeat" disabled>Repetir pergunta</button>
+          </div>
+          <div class="tr-composer">
+            <button type="button" class="tr-mic" id="int-mic" aria-label="Responder pelo microfone" aria-pressed="false" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+            </button>
+            <label class="sr-only" for="int-input">Sua resposta</label>
+            <textarea id="int-input" rows="4" placeholder="Responda falando (microfone) ou digitando." disabled></textarea>
+            <button type="button" class="btn btn-primary" id="int-submit" disabled>Avaliar</button>
+          </div>
+          <p class="small muted" id="int-timer" aria-live="off">Meta: 20 a 45 segundos por resposta.</p>
+          <div class="int-feedback" id="int-feedback" hidden>
+            <h2 class="int-fb-title" id="int-fb-title"></h2>
+            <ul class="int-points" id="int-points"></ul>
+            <p id="int-meta" class="small muted"></p>
+            <div class="int-ai" id="int-ai" hidden></div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-ghost" id="int-model">Ouvir resposta-modelo</button>
+              <button type="button" class="btn btn-ghost" id="int-claude" hidden>Pedir feedback do Claude</button>
+              <button type="button" class="btn btn-primary" id="int-next">Próxima pergunta</button>
+            </div>
+            <p class="int-model-text" id="int-model-text" hidden></p>
+          </div>
+        </section>
+
+        <!-- ============ ENSAIAR ROTEIRO ============ -->
+        <section class="tr-panel" id="p-reh" role="tabpanel" aria-labelledby="m-reh" hidden>
+          <div class="reh-top">
+            <span class="pill" id="reh-scene">Cena 1 de 7</span>
+            <span class="reh-clock" id="reh-clock" aria-live="off">0:00</span>
+            <span class="pill" id="reh-target">Meta total: 2:45</span>
+          </div>
+          <p class="reh-screen" id="reh-screen"></p>
+          <p class="reh-text" id="reh-text"></p>
+          <div class="reh-bar" aria-hidden="true"><b id="reh-bar"></b></div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="reh-go">Iniciar ensaio</button>
+            <button type="button" class="btn btn-ghost" id="reh-next" disabled>Próxima cena (→)</button>
+            <button type="button" class="btn btn-ghost" id="reh-listen">Ouvir esta cena</button>
+            <button type="button" class="btn btn-ghost" id="reh-reset">Recomeçar</button>
+          </div>
+          <div class="table-wrap mt" id="reh-result" hidden>
+            <table>
+              <caption id="reh-summary"></caption>
+              <thead><tr><th scope="col">Cena</th><th scope="col" class="num">Meta</th><th scope="col" class="num">Seu tempo</th><th scope="col">Avaliação</th></tr></thead>
+              <tbody id="reh-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ LATERAL ============ -->
+        <aside class="tr-side">
+          <div class="card">
+            <h2 class="tr-side-title">Voz</h2>
+            <label class="tr-check"><input type="checkbox" id="opt-speak" checked> Ler respostas em voz alta</label>
+            <label class="tr-field" for="opt-voice">Voz
+              <select id="opt-voice"><option value="">Padrão do sistema</option></select>
+            </label>
+            <label class="tr-field" for="opt-rate">Velocidade
+              <select id="opt-rate"><option value="0.9">0,9×</option><option value="1" selected>1×</option><option value="1.15">1,15×</option><option value="1.3">1,3×</option></select>
+            </label>
+            <button type="button" class="btn btn-ghost" id="opt-stop">Parar fala</button>
+          </div>
+          <details class="card" id="claude-box">
+            <summary class="tr-side-title">Respostas com Claude (opcional)</summary>
+            <p class="small">Sem chave, o treino usa respostas prontas e avaliação automática. Com uma chave da API da Anthropic, as perguntas livres e o feedback da entrevista passam a ser respondidos pelo Claude.</p>
+            <label class="tr-field" for="opt-key">Chave da API
+              <input type="password" id="opt-key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+            </label>
+            <label class="tr-field" for="opt-model">Modelo
+              <input type="text" id="opt-model" spellcheck="false" value="claude-sonnet-4-5">
+            </label>
+            <label class="tr-check"><input type="checkbox" id="opt-remember"> Lembrar neste navegador</label>
+            <p class="small muted">A chave fica só neste navegador (sessão, ou armazenamento local se marcado) e é enviada apenas para api.anthropic.com. Não use em computador compartilhado. As chamadas são cobradas na sua conta.</p>
+            <div class="btn-row"><button type="button" class="btn btn-ghost" id="opt-forget">Apagar chave</button></div>
+            <p class="small" id="claude-status" aria-live="polite"></p>
+          </details>
+          <div class="card">
+            <h2 class="tr-side-title">Números para citar</h2>
+            <ul class="tr-facts">
+              <li><b>2.638</b> células após QC (de 2.700)</li>
+              <li><b>10</b> grupos em Leiden 0,6</li>
+              <li><b>7</b> tipos imunes</li>
+              <li><b>55%</b> são células T</li>
+              <li><b>14</b> plaquetas (0,5%)</li>
+              <li><b>13</b> testes automatizados</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <span>O microfone funciona no Chrome e no Edge (HTTPS ou localhost). Sem ele, digite ou use o ditado do sistema (Windows + H).</span>
+        <nav aria-label="Rodapé"><a href="../">Voltar ao projeto</a></nav>
+      </div>
+    </footer>
+    <script src="../assets/app.js" defer></script>
+    <script src="treino.js" defer></script>
+  </body>
+</html>

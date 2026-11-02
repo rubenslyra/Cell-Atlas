@@ -3,7 +3,7 @@ Cell-Atlas
 A reproducible, object-oriented single-cell RNA-seq analysis framework.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Cell-Atlas Team"
 
 from .core.config import Config

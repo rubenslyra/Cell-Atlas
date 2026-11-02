@@ -47,7 +47,7 @@ Este trabalho tem por objetivos:
 
 ### 2.1 Conjunto de Dados
 
-Utilizou-se o conjunto **PBMC3k**, composto por 2.700 células mononucleares de sangue periférico humano, gerado pela plataforma 10x Genomics. Este é amplamente reconhecido como referência para validação de métodos na área, sendo acessível via repositório público Scanpy e alternativamente sob identificação **GSE139324** no repositório NCBI Gene Expression Omnibus (GEO).
+Utilizou-se o conjunto **PBMC3k**, composto por 2.700 células mononucleares de sangue periférico humano, gerado pela plataforma 10x Genomics. Este é amplamente reconhecido como referência para validação de métodos na área, sendo acessível via repositório público Scanpy (`scanpy.datasets.pbmc3k()`) e na página oficial de conjuntos de dados da 10x Genomics ("3k PBMCs from a Healthy Donor"; Zheng et al., 2017).
 
 ### 2.2 Ambiente Computacional
 
