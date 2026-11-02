@@ -1,0 +1,78 @@
+/* Aprenda — lesson page; extends ../assets/site.css tokens. */
+.lesson-hero { padding-block: 40px 24px; display: grid; gap: 14px; max-width: 72ch; }
+.lesson-hero h1 { font-size: var(--step-4); letter-spacing: -.02em; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.toc a { text-decoration: none; }
+.prose { max-width: 70ch; display: grid; gap: 14px; color: var(--ink); }
+.prose p { color: var(--ink-2); }
+.prose strong { color: var(--ink); }
+.term { font-style: normal; font-weight: 600; color: var(--accent); }
+.en { font-family: var(--font-mono); font-size: .85em; color: var(--ink-3); }
+
+.diagram { margin: 24px 0 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; overflow-x: auto; }
+.diagram svg { width: 100%; height: auto; min-width: 560px; display: block; }
+.diagram figcaption { color: var(--ink-3); font-size: var(--step--1); margin-top: 8px; }
+.diagram text { font-family: var(--font-body); fill: var(--ink); }
+.diagram .t-muted { fill: var(--ink-3); }
+.diagram .t-strong { font-weight: 700; }
+.diagram .t-mono { font-family: var(--font-mono); }
+.diagram .stroke { stroke: var(--ink-3); fill: none; }
+.diagram .box { fill: var(--surface-2); stroke: var(--line); }
+.diagram .box-accent { fill: var(--accent-soft); stroke: var(--accent); }
+.diagram .arrow { stroke: var(--ink-3); fill: none; stroke-width: 1.5; }
+.diagram .head { fill: var(--ink-3); }
+.f-plasma { fill: #f4d58d; } .f-pbmc { fill: #f7f7f2; stroke: #c9c3a8; } .f-ficoll { fill: #cfe3f2; } .f-gran { fill: #e8c9c3; } .f-rbc { fill: #b33a3a; }
+.f-tube { fill: none; stroke: var(--ink-3); stroke-width: 2; }
+.f-c0 { fill: var(--c0); } .f-c1 { fill: var(--c1); } .f-c2 { fill: var(--c2); } .f-c3 { fill: var(--c3); } .f-c4 { fill: var(--c4); }
+.f-c5 { fill: var(--c5); } .f-c6 { fill: var(--c6); } .f-c7 { fill: var(--c7); } .f-c8 { fill: var(--c8); } .f-c9 { fill: var(--c9); }
+
+.cells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+@media (max-width: 760px) { .cells { grid-template-columns: minmax(0, 1fr); } }
+.cell-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.cell-card header { display: flex; align-items: center; gap: 10px; }
+.cell-card h3 { font-size: var(--step-1); }
+.cell-card .share { margin-left: auto; font: 600 var(--step--1) var(--font-mono); color: var(--ink-3); white-space: nowrap; }
+.cell-card dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 12px; font-size: var(--step--1); }
+.cell-card dt { color: var(--ink-3); font-weight: 600; }
+.cell-card dd { margin: 0; color: var(--ink-2); }
+.swatch { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+
+.timeline { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--line); }
+.timeline li { position: relative; padding: 0 0 18px 22px; display: grid; gap: 2px; }
+.timeline li::before { content: ""; position: absolute; left: -7px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); }
+.timeline li.key::before { background: var(--accent); }
+.timeline .year { font: 700 var(--step-0) var(--font-mono); color: var(--accent); }
+.timeline p { color: var(--ink-2); font-size: var(--step--1); }
+
+.dodont { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+@media (max-width: 760px) { .dodont { grid-template-columns: minmax(0, 1fr); } }
+.dodont .card h3 { font-size: var(--step-1); }
+.do h3 { color: var(--ok); } .dont h3 { color: var(--warn); }
+
+.metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; margin-top: 20px; }
+.metric-row div { padding: 16px 18px; border-left: 1px solid var(--line); display: grid; gap: 4px; }
+.metric-row div:first-child { border-left: 0; }
+.metric-row b { font: 700 var(--step-3)/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.metric-row span { font-size: var(--step--1); color: var(--ink-3); }
+@media (max-width: 640px) { .metric-row { grid-template-columns: minmax(0, 1fr); } .metric-row div { border-left: 0; border-top: 1px solid var(--line); } .metric-row div:first-child { border-top: 0; } }
+
+/* quiz */
+.quiz { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: grid; gap: 14px; margin-top: 20px; }
+.quiz-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; }
+.quiz-q { font: 600 var(--step-2)/1.35 var(--font-display); text-wrap: balance; }
+.quiz-opts { display: grid; gap: 8px; }
+.quiz-opts button { text-align: left; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 12px 14px; font: var(--step-0)/1.4 var(--font-body); cursor: pointer; }
+.quiz-opts button:hover:not(:disabled) { border-color: var(--accent); }
+.quiz-opts button.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, var(--bg)); }
+.quiz-opts button.wrong { border-color: var(--warn); background: var(--warn-soft); }
+.quiz-opts button:disabled { cursor: default; }
+.quiz-exp { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; color: var(--ink-2); }
+.quiz-exp b { color: var(--ink); }
+.refs td, .refs th { vertical-align: top; }
+.refs td:first-child { font-weight: 600; white-space: nowrap; }
+.refs ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.swatch.f-c0 { background: var(--c0); } .swatch.f-c1 { background: var(--c1); } .swatch.f-c2 { background: var(--c2); } .swatch.f-c3 { background: var(--c3); } .swatch.f-c4 { background: var(--c4); } .swatch.f-c5 { background: var(--c5); } .swatch.f-c6 { background: var(--c6); }
+.prose { align-content: start; }
+.diagram svg text { font-size: 13px; }
+.diagram svg text.t-strong { font-size: 14px; }
+.figure.big .figure-media img { max-height: 620px; }

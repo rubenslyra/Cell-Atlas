@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Aprenda — fundamentos do Cell-Atlas</title>
+    <meta name="description" content="O que são PBMC, células T, B, NK e monócitos; o que é o PBMC3k; como funcionam o sequenciamento de célula única, o arquivo .h5ad e o UMAP. Com quiz de treino e referências em português e inglês.">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; base-uri 'self'; form-action 'none'; object-src 'none'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../assets/site.css">
+    <link rel="stylesheet" href="aprenda.css">
+    <script src="../assets/theme.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <header class="site-header">
+      <div class="wrap nav">
+        <a class="brand" href="../">
+          <img class="brand-mark" src="../assets/img/favicon.svg" alt="" width="28" height="28">
+          Cell-Atlas
+        </a>
+        <ul class="nav-links" aria-label="Páginas">
+          <li><a href="../">Projeto</a></li>
+          <li><a href="./" aria-current="page">Aprenda</a></li>
+          <li><a href="../treino/">Treino</a></li>
+          <li><a href="../apresentacao/">Slides</a></li>
+        </ul>
+        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro/escuro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="conteudo">
+      <div class="wrap">
+        <header class="lesson-hero">
+          <p class="eyebrow">Fundamentos · para quem vem da computação</p>
+          <h1>Do tubo de sangue ao mapa de células</h1>
+          <p class="lead">Tudo o que você precisa para explicar o Cell-Atlas sem decorar: o que são as células, de onde vem o dado, o que tem dentro do arquivo e como ler o mapa. No fim há um quiz de treino.</p>
+          <nav class="toc" aria-label="Nesta página">
+            <a class="pill" href="#pbmc">1. PBMC</a>
+            <a class="pill" href="#tipos">2. Os tipos de células</a>
+            <a class="pill" href="#historia">3. Como foram descobertas</a>
+            <a class="pill" href="#hoje">4. Uso no mundo real</a>
+            <a class="pill" href="#pbmc3k">5. O PBMC3k</a>
+            <a class="pill" href="#h5ad">6. O arquivo .h5ad</a>
+            <a class="pill" href="#umap">7. O UMAP na prática</a>
+            <a class="pill" href="#validacao">8. Validação</a>
+            <a class="pill" href="#quiz">Quiz</a>
+            <a class="pill" href="#referencias">Referências</a>
+          </nav>
+        </header>
+      </div>
+
+      <!-- 1 PBMC -->
+      <section class="section" id="pbmc">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">1 · PBMC</p>
+            <h2>PBMC são as células do sangue que têm um núcleo único e redondo</h2>
+            <p><strong>PBMC</strong> <span class="en">(peripheral blood mononuclear cells)</span> significa <em>células mononucleares do sangue periférico</em>: as células que circulam no sangue e têm <strong>um núcleo arredondado</strong>. São quase todas células do sistema imune: <span class="term">linfócitos</span> (T, B e NK), <span class="term">monócitos</span> e uma pequena fração de <span class="term">células dendríticas</span>.</p>
+            <p>Ficam de fora as hemácias (não têm núcleo), os granulócitos como os neutrófilos (núcleo com vários lóbulos) e as plaquetas (fragmentos sem núcleo). Na prática algumas plaquetas grudam nos PBMC durante a separação. É por isso que o Cell-Atlas encontra um grupo de 14 plaquetas.</p>
+            <p>A separação é feita por <strong>centrifugação em gradiente de densidade</strong> (Ficoll), técnica descrita por Arne Bøyum em 1968. O sangue é colocado sobre um líquido de densidade intermediária e centrifugado: hemácias e granulócitos, mais densos, vão para o fundo; os PBMC formam um anel fino na interface.</p>
+          </div>
+
+          <figure class="diagram">
+            <svg viewBox="0 0 760 300" role="img" aria-label="Tubo após centrifugação com Ficoll: plasma no topo, anel de PBMC, Ficoll, e hemácias com granulócitos no fundo">
+              <text x="24" y="28" class="t-strong">Depois da centrifugação, os PBMC formam um anel fino entre o plasma e o Ficoll</text>
+              <rect x="120" y="56" width="90" height="70" class="f-plasma"></rect>
+              <rect x="120" y="126" width="90" height="12" class="f-pbmc"></rect>
+              <rect x="120" y="138" width="90" height="56" class="f-ficoll"></rect>
+              <rect x="120" y="194" width="90" height="22" class="f-gran"></rect>
+              <rect x="120" y="216" width="90" height="56" class="f-rbc"></rect>
+              <path d="M120 50 V262 Q165 300 210 262 V50" class="f-tube"></path>
+              <path d="M222 92 H300" class="arrow"></path>
+              <path d="M222 132 H300" class="arrow"></path>
+              <path d="M222 166 H300" class="arrow"></path>
+              <path d="M222 205 H300" class="arrow"></path>
+              <path d="M222 244 H300" class="arrow"></path>
+              <text x="310" y="96">Plasma <tspan class="t-muted">(parte líquida)</tspan></text>
+              <text x="310" y="136" class="t-strong">PBMC: linfócitos T, B, NK, monócitos, dendríticas</text>
+              <text x="310" y="170">Ficoll <tspan class="t-muted">(meio de densidade 1,077 g/mL)</tspan></text>
+              <text x="310" y="209">Granulócitos <tspan class="t-muted">(neutrófilos, eosinófilos)</tspan></text>
+              <text x="310" y="248">Hemácias <tspan class="t-muted">(sem núcleo, mais densas)</tspan></text>
+            </svg>
+            <figcaption>Esquema simplificado da separação por gradiente de densidade (Bøyum, 1968). As proporções das camadas são ilustrativas.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 2 Tipos -->
+      <section class="section band" id="tipos">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">2 · Os tipos de células</p>
+            <h2>Sete populações, cada uma com um trabalho e uma “assinatura” de genes</h2>
+            <p>O sistema imune tem duas camadas. A <strong>imunidade inata</strong> reage em minutos e de forma genérica (monócitos, NK, dendríticas). A <strong>imunidade adaptativa</strong> leva dias, mas reconhece um invasor específico e guarda memória (células T e B; é ela que as vacinas treinam).</p>
+            <p>Cada tipo usa um conjunto característico de genes, os <span class="term">marcadores</span>. É isso que permite ao Cell-Atlas dar nome aos grupos. Muitos marcadores têm dois nomes: o do gene (MS4A1) e o da proteína na superfície da célula (CD20). “CD” vem de <span class="en">cluster of differentiation</span>, um catálogo de proteínas de superfície.</p>
+          </div>
+
+          <figure class="diagram">
+            <svg viewBox="0 0 760 170" role="img" aria-label="Composição das 2.638 células do PBMC3k: T 55,5 por cento, monócitos CD14 16,8, monócitos FCGR3A 7,4, B 13,0, NK 5,4, dendríticas 1,3, plaquetas 0,5">
+              <text x="24" y="28" class="t-strong">Mais da metade das células do sangue analisado são células T</text>
+              <text x="24" y="48" class="t-muted">2.638 células do PBMC3k após o QC, anotação do Cell-Atlas</text>
+              <rect x="24" y="64" width="395" height="36" class="f-c6"></rect>
+              <rect x="419" y="64" width="120" height="36" class="f-c1"></rect>
+              <rect x="539" y="64" width="53" height="36" class="f-c3"></rect>
+              <rect x="592" y="64" width="93" height="36" class="f-c0"></rect>
+              <rect x="685" y="64" width="38" height="36" class="f-c4"></rect>
+              <rect x="723" y="64" width="9" height="36" class="f-c2"></rect>
+              <rect x="732" y="64" width="4" height="36" class="f-c5"></rect>
+              <text x="221" y="87" text-anchor="middle" class="t-strong">T 55,5%</text>
+              <circle cx="30" cy="126" r="6" class="f-c6"></circle><text x="42" y="130">T 1.464</text>
+              <circle cx="210" cy="126" r="6" class="f-c1"></circle><text x="222" y="130">Monócitos CD14+ 443</text>
+              <circle cx="470" cy="126" r="6" class="f-c3"></circle><text x="482" y="130">Monócitos FCGR3A+ 196</text>
+              <circle cx="30" cy="152" r="6" class="f-c0"></circle><text x="42" y="156">B 344</text>
+              <circle cx="210" cy="152" r="6" class="f-c4"></circle><text x="222" y="156">NK 142</text>
+              <circle cx="470" cy="152" r="6" class="f-c2"></circle><text x="482" y="156">Dendríticas 35</text>
+              <circle cx="640" cy="152" r="6" class="f-c5"></circle><text x="652" y="156">Plaquetas 14</text>
+            </svg>
+            <figcaption>No sangue de adultos saudáveis, os linfócitos costumam ser a maior parte dos PBMC e os monócitos algo como 10 a 20%. Os valores variam entre pessoas.</figcaption>
+          </figure>
+
+          <div class="cells">
+            <article class="cell-card">
+              <header><span class="swatch f-c6"></span><h3>Células T (linfócitos T)</h3><span class="share">55,5%</span></header>
+              <p>Amadurecem no <strong>timo</strong> (daí o “T”). As <strong>T CD4+</strong> (auxiliares) coordenam a resposta imune; as <strong>T CD8+</strong> (citotóxicas) matam células infectadas ou tumorais.</p>
+              <dl>
+                <dt>Marcadores</dt><dd>CD3E, CD3D (complexo CD3), IL7R; CD8A nas citotóxicas</dd>
+                <dt>No Cell-Atlas</dt><dd>Grupos 0, 1, 3 e 8</dd>
+                <dt>Na clínica</dt><dd>A contagem de T CD4+ acompanha pessoas com HIV; terapias CAR-T usam células T do próprio paciente</dd>
+              </dl>
+            </article>
+            <article class="cell-card">
+              <header><span class="swatch f-c0"></span><h3>Células B (linfócitos B)</h3><span class="share">13,0%</span></header>
+              <p>Produzem <strong>anticorpos</strong>. O “B” vem da <em>bursa de Fabricius</em>, órgão das aves onde foram descritas; em humanos amadurecem na medula óssea (<span class="en">bone marrow</span>).</p>
+              <dl>
+                <dt>Marcadores</dt><dd>MS4A1 (= CD20), CD79A, CD74</dd>
+                <dt>No Cell-Atlas</dt><dd>Grupo 2</dd>
+                <dt>Na clínica</dt><dd>O rituximabe, um anticorpo contra CD20, trata linfomas e doenças autoimunes</dd>
+              </dl>
+            </article>
+            <article class="cell-card">
+              <header><span class="swatch f-c4"></span><h3>Células NK (<span class="en">natural killer</span>)</h3><span class="share">5,4%</span></header>
+              <p>“Matadoras naturais”: destroem células infectadas ou tumorais <strong>sem precisar de exposição prévia</strong>, liberando perforina e granzimas.</p>
+              <dl>
+                <dt>Marcadores</dt><dd>GNLY (granulisina), NKG7, GZMB (granzima B), PRF1 (perforina)</dd>
+                <dt>No Cell-Atlas</dt><dd>Grupo 6</dd>
+                <dt>Detalhe</dt><dd>T CD8+ também usam NKG7 e granzimas, por isso os dois tipos ficam vizinhos no mapa</dd>
+              </dl>
+            </article>
+            <article class="cell-card">
+              <header><span class="swatch f-c1"></span><h3>Monócitos clássicos (CD14+)</h3><span class="share">16,8%</span></header>
+              <p>Patrulham o sangue, <strong>engolem</strong> micróbios (fagocitose) e, ao entrar nos tecidos, viram macrófagos ou células dendríticas.</p>
+              <dl>
+                <dt>Marcadores</dt><dd>CD14, LYZ (lisozima), S100A8, S100A9</dd>
+                <dt>No Cell-Atlas</dt><dd>Grupo 7</dd>
+              </dl>
+            </article>
+            <article class="cell-card">
+              <header><span class="swatch f-c3"></span><h3>Monócitos não clássicos (CD16+)</h3><span class="share">7,4%</span></header>
+              <p>Uma subpopulação de monócitos que patrulha a parede dos vasos. Expressa muito CD16 e pouco CD14.</p>
+              <dl>
+                <dt>Marcadores</dt><dd>FCGR3A (= CD16), MS4A7, LST1</dd>
+                <dt>No Cell-Atlas</dt><dd>Grupo 4</dd>
+                <dt>Detalhe</dt><dd>Entre as duas há monócitos “intermediários”; é onde o Cell-Atlas mais discorda da referência (seção 8)</dd>
+              </dl>
+            </article>
+            <article class="cell-card">
+              <header><span class="swatch f-c2"></span><h3>Células dendríticas</h3><span class="share">1,3%</span></header>
+              <p>Capturam pedaços de invasores e os <strong>apresentam</strong> às células T, ligando a imunidade inata à adaptativa.</p>
+              <dl>
+                <dt>Marcadores</dt><dd>FCER1A, CST3, genes HLA de classe II (HLA-DPA1, HLA-DRA)</dd>
+                <dt>No Cell-Atlas</dt><dd>Grupo 9</dd>
+              </dl>
+            </article>
+            <article class="cell-card">
+              <header><span class="swatch f-c5"></span><h3>Plaquetas</h3><span class="share">0,5%</span></header>
+              <p>Não são células: são <strong>fragmentos</strong> de megacariócitos da medula óssea e atuam na coagulação. Contaminam a amostra de PBMC em pequena quantidade.</p>
+              <dl>
+                <dt>Marcadores</dt><dd>PPBP, PF4</dd>
+                <dt>No Cell-Atlas</dt><dd>Grupo 5 (14 células)</dd>
+              </dl>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 História -->
+      <section class="section" id="historia">
+        <div class="wrap grid-2">
+          <div class="prose">
+            <p class="eyebrow">3 · Como foram descobertas</p>
+            <h2>Um século de imunologia e uma década de célula única</h2>
+            <p>Os tipos celulares foram descobertos um a um, por experimentos de laboratório e microscopia. O sequenciamento de célula única inverteu a lógica: mede milhares de genes em milhares de células e deixa os tipos aparecerem sozinhos. O Cell-Atlas faz exatamente isso, e confere o resultado com o que a imunologia clássica já sabia.</p>
+            <p class="small muted">Os marcos em destaque são os que você pode citar numa entrevista.</p>
+          </div>
+          <ol class="timeline">
+            <li><span class="year">1882</span><p>Élie Metchnikoff observa a fagocitose em larvas de estrela-do-mar: origem da ideia de células que “comem” invasores (monócitos e macrófagos). Nobel de 1908.</p></li>
+            <li><span class="year">1956</span><p>Bruce Glick mostra que a bursa de Fabricius das aves é necessária para produzir anticorpos: o “B” das células B.</p></li>
+            <li><span class="year">1961</span><p>Jacques Miller descobre a função imune do timo: o “T” das células T.</p></li>
+            <li class="key"><span class="year">1968</span><p>Arne Bøyum descreve a separação de células mononucleares por gradiente de densidade, base do isolamento de PBMC até hoje.</p></li>
+            <li><span class="year">1973</span><p>Ralph Steinman e Zanvil Cohn descrevem as células dendríticas. Nobel de 2011.</p></li>
+            <li><span class="year">1975</span><p>Grupos de Rolf Kiessling, Eva Klein e Hans Wigzell, e de Ronald Herberman, descrevem a atividade “natural killer”.</p></li>
+            <li class="key"><span class="year">2009</span><p>Tang e colegas publicam o primeiro transcriptoma de uma única célula por sequenciamento.</p></li>
+            <li><span class="year">2015</span><p>Drop-seq e inDrop encapsulam cada célula numa gota com um código de barras: milhares de células por experimento.</p></li>
+            <li class="key"><span class="year">2016–2017</span><p>A 10x Genomics publica o PBMC3k e, com Zheng e colegas (2017), a tecnologia Chromium para dezenas de milhares de células.</p></li>
+            <li><span class="year">2018–2019</span><p>Scanpy (Wolf et al.), UMAP (McInnes et al.) e Leiden (Traag et al.): as ferramentas que o Cell-Atlas usa.</p></li>
+            <li><span class="year">2022</span><p>CellTypist (Domínguez Conde et al.): anotação automática treinada em atlas de milhões de células imunes.</p></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 4 Hoje -->
+      <section class="section band" id="hoje">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">4 · Uso no mundo real</p>
+            <h2>Por que o sangue é a amostra mais estudada da imunologia</h2>
+            <p>Coletar sangue é rápido, barato e pode ser repetido no mesmo paciente. Por isso os PBMC são a porta de entrada para acompanhar o sistema imune em doenças, tratamentos e vacinas.</p>
+          </div>
+          <div class="grid-3 mt">
+            <article class="card"><h3>Diagnóstico e acompanhamento</h3><p>A citometria de fluxo conta células T CD4+ para acompanhar o HIV e classifica leucemias e linfomas pelos marcadores de superfície (os mesmos CDs desta página).</p></article>
+            <article class="card"><h3>Terapias celulares</h3><p>Na terapia CAR-T, células T são retiradas do sangue do paciente, modificadas para reconhecer o tumor e devolvidas. Tudo começa num isolamento de PBMC.</p></article>
+            <article class="card"><h3>Medicamentos-alvo</h3><p>Anticorpos como o rituximabe atacam uma proteína específica (CD20, gene MS4A1) e eliminam células B doentes.</p></article>
+            <article class="card"><h3>Vacinas e infecções</h3><p>Durante a COVID-19, atlas de célula única do sangue mostraram quais células mudavam nos casos graves (por exemplo, Wilk et al., 2020).</p></article>
+            <article class="card"><h3>Doenças autoimunes</h3><p>Em lúpus, PBMC de pacientes estimulados com interferon mostram como cada tipo celular responde: é o conjunto de Kang et al. (2018), o próximo passo do Cell-Atlas.</p></article>
+            <article class="card"><h3>Atlas de referência</h3><p>Consórcios como o Human Cell Atlas mapeiam todos os tipos celulares do corpo; o sangue é um dos tecidos mais completos.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5 PBMC3k -->
+      <section class="section" id="pbmc3k">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">5 · O PBMC3k</p>
+            <h2>O “hello world” da análise de célula única</h2>
+            <p>O <strong>PBMC3k</strong> é um conjunto público com cerca de <strong>2.700 PBMC de um doador saudável</strong>, sequenciadas pela 10x Genomics com a tecnologia Chromium (química v1) e publicadas em 2016. O “3k” é de 3 mil células, arredondado.</p>
+            <p>Virou a referência de ensino porque é pequeno (roda em qualquer computador), tem tipos celulares bem conhecidos e foi usado nos tutoriais oficiais do Seurat (R) e do Scanpy (Python). Sabemos a resposta certa: dá para conferir se um método funciona.</p>
+            <p>No Cell-Atlas ele é baixado por <code>scanpy.datasets.pbmc3k()</code> e salvo em <code>dados/pbmc3k.h5ad</code>: 2.700 células × 32.738 genes.</p>
+          </div>
+          <figure class="diagram">
+            <svg viewBox="0 0 760 214" role="img" aria-label="Fluxo do PBMC3k: sangue, isolamento de PBMC, uma célula por gota com código de barras, sequenciamento, matriz de contagens e arquivo h5ad">
+              <defs><marker id="ap-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="head"></path></marker></defs>
+              <text x="24" y="26" class="t-strong">Do doador ao arquivo que o Cell-Atlas lê</text>
+              <rect x="24" y="44" width="216" height="52" rx="8" class="box"></rect>
+              <text x="38" y="66" class="t-strong">1. Sangue do doador</text><text x="38" y="85" class="t-muted">tubo de coleta</text>
+              <rect x="272" y="44" width="216" height="52" rx="8" class="box"></rect>
+              <text x="286" y="66" class="t-strong">2. Isolamento de PBMC</text><text x="286" y="85" class="t-muted">gradiente de Ficoll</text>
+              <rect x="520" y="44" width="216" height="52" rx="8" class="box"></rect>
+              <text x="534" y="66" class="t-strong">3. Uma célula por gota</text><text x="534" y="85" class="t-muted">gota com código de barras</text>
+              <rect x="24" y="128" width="216" height="52" rx="8" class="box"></rect>
+              <text x="38" y="150" class="t-strong">4. Sequenciamento</text><text x="38" y="169" class="t-muted">RNA + código da célula</text>
+              <rect x="272" y="128" width="216" height="52" rx="8" class="box"></rect>
+              <text x="286" y="150" class="t-strong">5. Matriz de contagens</text><text x="286" y="169" class="t-muted">células × genes</text>
+              <rect x="520" y="128" width="216" height="52" rx="8" class="box-accent"></rect>
+              <text x="534" y="150" class="t-strong">6. dados/pbmc3k.h5ad</text><text x="534" y="169" class="t-muted">2.700 × 32.738</text>
+              <path d="M240 70 H268" class="arrow" marker-end="url(#ap-arrow)"></path>
+              <path d="M488 70 H516" class="arrow" marker-end="url(#ap-arrow)"></path>
+              <path d="M628 96 V112 H132 V124" class="arrow" marker-end="url(#ap-arrow)"></path>
+              <path d="M240 154 H268" class="arrow" marker-end="url(#ap-arrow)"></path>
+              <path d="M488 154 H516" class="arrow" marker-end="url(#ap-arrow)"></path>
+              <text x="24" y="204" class="t-muted">Etapas 1 a 5 feitas pela 10x Genomics em 2016; a etapa 6 é o download pelo Scanpy.</text>
+            </svg>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 6 h5ad -->
+      <section class="section band" id="h5ad">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">6 · O arquivo .h5ad</p>
+            <h2>Um banco de dados num arquivo: matriz no centro, metadados nas bordas</h2>
+            <p>O <code>.h5ad</code> guarda um objeto <strong>AnnData</strong> <span class="en">(annotated data)</span> dentro de um arquivo <strong>HDF5</strong>, um formato binário hierárquico, como um sistema de pastas comprimido dentro de um arquivo. Pense numa tabela gigante com tabelas auxiliares coladas nas bordas, todas alinhadas pelos mesmos índices.</p>
+          </div>
+          <figure class="diagram">
+            <svg viewBox="0 0 760 330" role="img" aria-label="Anatomia do AnnData: matriz X de células por genes no centro, obs com metadados das células à esquerda, var com metadados dos genes no topo, obsm com coordenadas, obsp com o grafo e uns com resultados">
+              <text x="24" y="28" class="t-strong">Anatomia de um AnnData: tudo se alinha pelas linhas (células) ou pelas colunas (genes)</text>
+              <rect x="250" y="52" width="300" height="56" rx="6" class="box"></rect>
+              <text x="400" y="76" text-anchor="middle" class="t-strong t-mono">var</text>
+              <text x="400" y="96" text-anchor="middle" class="t-muted">1 linha por gene: nome, “mt”, variável</text>
+              <rect x="24" y="124" width="210" height="150" rx="6" class="box"></rect>
+              <text x="129" y="150" text-anchor="middle" class="t-strong t-mono">obs</text>
+              <text x="129" y="174" text-anchor="middle" class="t-muted">1 linha por célula:</text>
+              <text x="129" y="194" text-anchor="middle" class="t-muted">código de barras, nº de genes,</text>
+              <text x="129" y="214" text-anchor="middle" class="t-muted">% mitocondrial, leiden_0.6,</text>
+              <text x="129" y="234" text-anchor="middle" class="t-muted">cell_type</text>
+              <rect x="250" y="124" width="300" height="150" rx="6" class="box-accent"></rect>
+              <text x="400" y="182" text-anchor="middle" class="t-strong t-mono">X</text>
+              <text x="400" y="204" text-anchor="middle">matriz células × genes</text>
+              <text x="400" y="224" text-anchor="middle" class="t-muted">contagens (cru) ou valores normalizados</text>
+              <rect x="566" y="124" width="170" height="44" rx="6" class="box"></rect>
+              <text x="580" y="144" class="t-strong t-mono">obsm</text><text x="580" y="160" class="t-muted">X_pca, X_umap</text>
+              <rect x="566" y="177" width="170" height="44" rx="6" class="box"></rect>
+              <text x="580" y="197" class="t-strong t-mono">obsp</text><text x="580" y="213" class="t-muted">grafo k-NN</text>
+              <rect x="566" y="230" width="170" height="44" rx="6" class="box"></rect>
+              <text x="580" y="250" class="t-strong t-mono">uns</text><text x="580" y="266" class="t-muted">cores, marcadores</text>
+              <rect x="250" y="290" width="300" height="32" rx="6" class="box"></rect>
+              <text x="400" y="311" text-anchor="middle"><tspan class="t-strong t-mono">raw</tspan><tspan class="t-muted"> · todos os genes, antes do recorte</tspan></text>
+            </svg>
+          </figure>
+          <div class="table-wrap mt">
+            <table>
+              <caption>Os quatro .h5ad que o pipeline grava em dados/</caption>
+              <thead><tr><th scope="col">Arquivo</th><th scope="col">Gerado por</th><th scope="col">O que tem de novo</th></tr></thead>
+              <tbody>
+                <tr><td><code>pbmc3k.h5ad</code></td><td><code>download</code></td><td>Só a matriz de contagens crua (2.700 × 32.738)</td></tr>
+                <tr><td><code>pbmc3k_processado.h5ad</code></td><td><code>preprocess</code></td><td>Células filtradas (2.638), 2.000 genes em <code>X</code>, todos em <code>raw</code>, <code>X_pca</code></td></tr>
+                <tr><td><code>pbmc3k_leiden.h5ad</code></td><td><code>cluster</code></td><td>Grafo em <code>obsp</code>, <code>X_umap</code>, colunas <code>leiden_0.2</code> … <code>leiden_1.0</code></td></tr>
+                <tr><td><code>pbmc3k_anotado.h5ad</code></td><td><code>annotate</code></td><td><code>cell_type</code> em <code>obs</code>, marcadores em <code>uns</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid-2 mt">
+            <div>
+              <p class="small muted">Para inspecionar no Python:</p>
+              <pre class="terminal"><code><span class="p">&gt;&gt;&gt; </span>import anndata as ad
+<span class="p">&gt;&gt;&gt; </span>a = ad.read_h5ad("dados/pbmc3k_anotado.h5ad")
+<span class="p">&gt;&gt;&gt; </span>a                       <span class="c"># resumo: n_obs × n_vars e as chaves</span>
+<span class="p">&gt;&gt;&gt; </span>a.obs.head()            <span class="c"># tabela das células (pandas)</span>
+<span class="p">&gt;&gt;&gt; </span>a.obs["cell_type"].value_counts()
+<span class="p">&gt;&gt;&gt; </span>a.obsm["X_umap"][:3]    <span class="c"># coordenadas do mapa</span></code></pre>
+            </div>
+            <div class="card">
+              <h3>Parentes do .h5ad</h3>
+              <ul class="check-list">
+                <li><code>.mtx</code> + <code>barcodes.tsv</code> + <code>genes.tsv</code>: saída clássica do Cell Ranger (matriz esparsa em texto)</li>
+                <li><code>.h5</code> da 10x: a mesma matriz em HDF5, sem as análises</li>
+                <li><code>.rds</code> com objeto Seurat: o equivalente no R</li>
+                <li><code>.zarr</code>: formato do AnnData para dados grandes ou na nuvem</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7 UMAP -->
+      <section class="section" id="umap">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">7 · O UMAP na prática</p>
+            <h2>Um mapa para olhar, não uma régua para medir</h2>
+            <p><strong>UMAP</strong> <span class="en">(Uniform Manifold Approximation and Projection)</span> é um algoritmo de McInnes, Healy e Melville (2018) que achata dados de muitas dimensões em 2D tentando manter juntos os pontos que eram vizinhos. Cada ponto é uma célula; células parecidas ficam perto.</p>
+            <p>No Cell-Atlas o UMAP <strong>não decide nada</strong>: os grupos vêm do Leiden, que trabalha no grafo de 10 dimensões (PCA). O UMAP só desenha o resultado. É como um dashboard: excelente para enxergar padrões, perigoso para tirar medidas.</p>
+          </div>
+          <div class="gallery mt">
+            <figure class="figure">
+              <div class="figure-media"><img src="../assets/img/umap_tipos_celulares.png" alt="UMAP das células coloridas pelo tipo celular sugerido." width="755" height="551" loading="lazy"></div>
+              <figcaption><span class="tag">Leitura</span><h3>O que dá para afirmar</h3><p>Células B formam uma ilha separada; T e NK ficam vizinhas (compartilham genes de citotoxicidade); os dois tipos de monócitos se tocam.</p></figcaption>
+            </figure>
+            <figure class="figure">
+              <div class="figure-media"><img src="../assets/img/marcadores_4.png" alt="Quatro UMAPs coloridos pela expressão de CD3E, MS4A1, LYZ e NKG7." width="1674" height="1058" loading="lazy"></div>
+              <figcaption><span class="tag">Validação visual</span><h3>Pintar o mapa por um gene</h3><p>Cada painel colore as células pela expressão de um marcador. Quando a cor acende só numa ilha, o nome do grupo está confirmado.</p></figcaption>
+            </figure>
+          </div>
+          <div class="dodont">
+            <div class="card do"><h3>Pode</h3><ul class="check-list"><li>Ver quais células são vizinhas</li><li>Conferir se os grupos do Leiden fazem sentido</li><li>Pintar por gene, amostra ou condição</li><li>Mostrar o resultado num slide</li></ul></div>
+            <div class="card dont"><h3>Não pode</h3><ul class="check-list"><li>Medir distância entre ilhas distantes</li><li>Comparar tamanhos de ilhas como se fossem proporções</li><li>Definir grupos “a olho” no desenho</li><li>Esquecer a semente: outra semente gera outro desenho</li></ul></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 Validação -->
+      <section class="section band" id="validacao">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">8 · Validação (passo A do plano)</p>
+            <h2>A anotação do Cell-Atlas concorda com a de especialistas em 96,8% das células</h2>
+            <p>O comando <code>cellatlas compare</code> confronta os rótulos automáticos do Cell-Atlas com os rótulos curados à mão no tutorial clássico do PBMC3k, para as mesmas 2.638 células. A <strong>acurácia</strong> é a fração de células com o mesmo nome; o <strong>ARI</strong> <span class="en">(adjusted Rand index)</span> mede se as duas partições agrupam as mesmas células, independentemente dos nomes (1 = idênticas, 0 = acaso).</p>
+          </div>
+          <div class="metric-row">
+            <div><b>96,8%</b><span>acurácia, marcadores vs especialista</span></div>
+            <div><b>0,96</b><span>ARI, marcadores vs especialista</span></div>
+            <div><b>0,64</b><span>ARI, grupos Leiden 0,6 vs rótulos finos (CD4 e CD8 separados)</span></div>
+          </div>
+          <figure class="figure mt big">
+            <div class="figure-media"><img src="../assets/img/matriz_confusao_especialista.png" alt="Matriz de confusão entre a anotação do Cell-Atlas e os rótulos de especialistas. A maior discordância são 49 monócitos CD14+ classificados como FCGR3A+ e 12 NK classificadas como T." width="1126" height="912" loading="lazy"></div>
+            <figcaption><span class="tag">resultados/matriz_confusao_especialista.csv</span><h3>Onde os métodos discordam é onde há biologia interessante</h3><p>49 monócitos CD14+ viraram FCGR3A+: provavelmente monócitos intermediários, que expressam os dois marcadores. 12 NK viraram T: ficam no grupo misto de T CD8+ e NK, que compartilham genes de citotoxicidade. Isso vira pergunta para a próxima etapa, não erro escondido.</p></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="section" id="quiz">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">Treino</p>
+            <h2>Quiz dos fundamentos</h2>
+            <p>12 perguntas sobre esta página. Cada resposta traz a explicação. Para treinar falando, use o <a href="../treino/">Cell-Atlas, em voz alta</a>.</p>
+          </div>
+          <div class="quiz" id="quiz-box">
+            <div class="quiz-top"><span class="pill" id="quiz-progress">Pergunta 1 de 12</span><span class="pill" id="quiz-score">Acertos: 0</span></div>
+            <p class="quiz-q" id="quiz-q">Carregando…</p>
+            <div class="quiz-opts" id="quiz-opts"></div>
+            <p class="quiz-exp" id="quiz-exp" hidden></p>
+            <div class="btn-row">
+              <button type="button" class="btn btn-ghost" id="quiz-listen">Ouvir pergunta</button>
+              <button type="button" class="btn btn-primary" id="quiz-next" hidden>Próxima</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Referências -->
+      <section class="section band" id="referencias">
+        <div class="wrap">
+          <div class="prose">
+            <p class="eyebrow">Referências</p>
+            <h2>Originais em inglês e material em português</h2>
+            <p>Os links de artigo levam ao DOI, o endereço permanente do texto original. Os links em português e de vídeo abrem buscas já prontas, para você escolher a fonte mais didática e atual.</p>
+          </div>
+          <div class="table-wrap mt">
+            <table class="refs">
+              <caption>DOIs dos artigos originais; buscas em português na Wikipédia, SciELO e YouTube</caption>
+              <thead><tr><th scope="col">Tema</th><th scope="col">Original (inglês)</th><th scope="col">Em português</th></tr></thead>
+              <tbody>
+                <tr><td>PBMC e Ficoll</td>
+                  <td><ul><li>Bøyum, A. Isolation of mononuclear cells and granulocytes from human blood. <i>Scand. J. Clin. Lab. Invest.</i> 21 (Suppl. 97), 1968.</li></ul></td>
+                  <td><ul><li><a href="https://pt.wikipedia.org/w/index.php?search=C%C3%A9lula+mononuclear+do+sangue+perif%C3%A9rico">Wikipédia: célula mononuclear do sangue periférico</a></li><li><a href="https://www.youtube.com/results?search_query=isolamento+de+PBMC+ficoll">Vídeos: isolamento de PBMC com Ficoll</a></li></ul></td></tr>
+                <tr><td>Células T, B, NK, monócitos</td>
+                  <td><ul><li>Ziegler-Heitbrock, L. et al. Nomenclature of monocytes and dendritic cells in blood. <i>Blood</i> 116, e74 (2010). <a href="https://doi.org/10.1182/blood-2010-02-258558">doi</a></li><li><a href="https://www.youtube.com/results?search_query=innate+vs+adaptive+immunity+explained">Vídeos (EN): innate vs adaptive immunity</a></li></ul></td>
+                  <td><ul><li><a href="https://pt.wikipedia.org/w/index.php?search=Linf%C3%B3cito+T">Wikipédia: linfócito T</a> · <a href="https://pt.wikipedia.org/w/index.php?search=Linf%C3%B3cito+B">linfócito B</a> · <a href="https://pt.wikipedia.org/w/index.php?search=C%C3%A9lula+NK">célula NK</a> · <a href="https://pt.wikipedia.org/w/index.php?search=Mon%C3%B3cito">monócito</a></li><li><a href="https://www.youtube.com/results?search_query=sistema+imune+inato+e+adaptativo+aula">Vídeos: imunidade inata e adaptativa</a></li></ul></td></tr>
+                <tr><td>Célula única e PBMC3k</td>
+                  <td><ul><li>Tang, F. et al. mRNA-Seq whole-transcriptome analysis of a single cell. <i>Nat. Methods</i> 6, 377 (2009). <a href="https://doi.org/10.1038/nmeth.1315">doi</a></li><li>Macosko, E. Z. et al. Drop-seq. <i>Cell</i> 161, 1202 (2015). <a href="https://doi.org/10.1016/j.cell.2015.05.002">doi</a></li><li>Zheng, G. X. Y. et al. Massively parallel digital transcriptional profiling of single cells. <i>Nat. Commun.</i> 8, 14049 (2017). <a href="https://doi.org/10.1038/ncomms14049">doi</a></li></ul></td>
+                  <td><ul><li><a href="https://pt.wikipedia.org/w/index.php?search=Sequenciamento+de+RNA+de+c%C3%A9lula+%C3%BAnica">Wikipédia: sequenciamento de RNA de célula única</a></li><li><a href="https://search.scielo.org/?q=sequenciamento+de+c%C3%A9lula+%C3%BAnica">SciELO: artigos em português</a></li><li><a href="https://www.youtube.com/results?search_query=sequenciamento+de+RNA+de+c%C3%A9lula+%C3%BAnica">Vídeos: scRNA-seq em português</a></li></ul></td></tr>
+                <tr><td>AnnData e .h5ad</td>
+                  <td><ul><li>Virshup, I. et al. anndata: Access and store annotated data matrices. <i>J. Open Source Softw.</i> 9, 4371 (2024). <a href="https://doi.org/10.21105/joss.04371">doi</a></li><li>Wolf, F. A. et al. SCANPY. <i>Genome Biol.</i> 19, 15 (2018). <a href="https://doi.org/10.1186/s13059-017-1382-0">doi</a></li></ul></td>
+                  <td><ul><li><a href="https://pt.wikipedia.org/w/index.php?search=Hierarchical+Data+Format">Wikipédia: HDF (Hierarchical Data Format)</a></li></ul></td></tr>
+                <tr><td>UMAP e Leiden</td>
+                  <td><ul><li>McInnes, L., Healy, J. &amp; Melville, J. UMAP. arXiv:1802.03426 (2018). <a href="https://arxiv.org/abs/1802.03426">arXiv</a></li><li>Traag, V. A. et al. From Louvain to Leiden. <i>Sci. Rep.</i> 9, 5233 (2019). <a href="https://doi.org/10.1038/s41598-019-41695-z">doi</a></li><li>Chari, T. &amp; Pachter, L. The specious art of single-cell genomics. <i>PLOS Comput. Biol.</i> 19, e1011288 (2023). <a href="https://doi.org/10.1371/journal.pcbi.1011288">doi</a></li><li><a href="https://www.youtube.com/results?search_query=StatQuest+UMAP">Vídeos (EN): StatQuest UMAP</a> · <a href="https://www.youtube.com/results?search_query=StatQuest+PCA+step+by+step">StatQuest PCA</a></li></ul></td>
+                  <td><ul><li><a href="https://www.youtube.com/results?search_query=UMAP+redu%C3%A7%C3%A3o+de+dimensionalidade+explica%C3%A7%C3%A3o">Vídeos: UMAP em português</a></li><li><a href="https://www.youtube.com/results?search_query=PCA+an%C3%A1lise+de+componentes+principais+explica%C3%A7%C3%A3o">Vídeos: PCA em português</a></li></ul></td></tr>
+                <tr><td>Boas práticas e anotação</td>
+                  <td><ul><li>Heumos, L. et al. Best practices for single-cell analysis across modalities. <i>Nat. Rev. Genet.</i> 24, 550 (2023). <a href="https://doi.org/10.1038/s41576-023-00586-w">doi</a> · <a href="https://www.sc-best-practices.org/">livro online</a></li><li>Domínguez Conde, C. et al. (CellTypist). <i>Science</i> 376, eabl5197 (2022). <a href="https://doi.org/10.1126/science.abl5197">doi</a></li></ul></td>
+                  <td><ul><li><a href="https://www.youtube.com/results?search_query=bioinform%C3%A1tica+single+cell+scanpy+tutorial+portugu%C3%AAs">Vídeos: Scanpy em português</a></li></ul></td></tr>
+                <tr><td>Aplicações</td>
+                  <td><ul><li>Wilk, A. J. et al. A single-cell atlas of the peripheral immune response in patients with severe COVID-19. <i>Nat. Med.</i> 26, 1070 (2020). <a href="https://doi.org/10.1038/s41591-020-0944-y">doi</a></li><li>Kang, H. M. et al. Multiplexed droplet single-cell RNA-sequencing using natural genetic variation. <i>Nat. Biotechnol.</i> 36, 89 (2018). <a href="https://doi.org/10.1038/nbt.4042">doi</a></li></ul></td>
+                  <td><ul><li><a href="https://pt.wikipedia.org/w/index.php?search=Terapia+com+c%C3%A9lulas+CAR-T">Wikipédia: terapia CAR-T</a> · <a href="https://pt.wikipedia.org/w/index.php?search=Rituximabe">rituximabe</a></li></ul></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <span>Cell-Atlas · material didático · números da execução de referência (random_state = 0)</span>
+        <nav aria-label="Rodapé"><a href="../">Projeto</a><a href="../treino/">Treino</a><a href="../apresentacao/">Slides</a></nav>
+      </div>
+    </footer>
+    <script src="../assets/app.js" defer></script>
+    <script src="aprenda.js" defer></script>
+  </body>
+</html>

@@ -1,1538 +1,373 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Cell-Atlas — mapa celular do sangue por scRNA-seq</title>
+    <meta name="description" content="Cell-Atlas: pipeline Python reprodutível que agrupa 2.638 células do sangue (PBMC3k) com Leiden e reencontra 7 tipos imunes por genes marcadores.">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#0f6e6a">
+    <meta property="og:title" content="Cell-Atlas">
+    <meta property="og:description" content="Sem dizer ao algoritmo o que procurar, 2.638 células do sangue se organizam em 7 tipos imunes conhecidos.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/img/umap_tipos_celulares.png">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="assets/site.css">
+    <script src="assets/theme.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cell-Atlas | Mapa Celular por scRNA-seq</title>
-  <meta name="description"
-    content="Cell-Atlas: pipeline reprodutível e orientado a objetos para análise de scRNA-seq com PBMC3k, agrupamento Leiden, UMAP e anotação de tipos celulares.">
-  <meta name="robots" content="index, follow">
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://img.shields.io; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests">
-  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
-  <link rel="icon" href="data:,">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13/dist/index.global.js"></script>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-  <style>
-    :root {
-      --bg-primary: #0f0f0f;
-      --bg-secondary: #161616;
-      --bg-tertiary: #1f1f1f;
-      --bg-card: linear-gradient(180deg, rgba(34, 211, 238, 0.08) 0%, rgba(31, 31, 31, 0.98) 100%);
-      --border: rgba(148, 163, 184, 0.18);
-      --text-primary: #f8fafc;
-      --text-secondary: #cbd5e1;
-      --text-tertiary: #94a3b8;
-      --accent: #22d3ee;
-      --accent-strong: #06b6d4;
-    }
-
-    * {
-      scroll-behavior: smooth;
-      scroll-padding-top: 88px;
-    }
-
-    body {
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(140% 140% at 50% 0%, rgba(34, 211, 238, 0.05) 0%, transparent 60%), var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.8;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    code {
-      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-
-    .glass-nav {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      background: linear-gradient(180deg, rgba(15, 15, 15, 0.98) 0%, rgba(15, 15, 15, 0.9) 100%);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 1.5rem;
-      transition: all 0.25s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(34, 211, 238, 0.5);
-      box-shadow: 0 60px 120px -90px rgba(34, 211, 238, 0.4);
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      border-radius: 9999px;
-      border: 1px solid var(--border);
-      padding: 0.4rem 0.9rem;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      transition: all 0.25s ease;
-      min-height: 44px;
-    }
-
-    .pill:hover {
-      border-color: rgba(34, 211, 238, 0.6);
-      color: var(--accent);
-    }
-
-    .pill:focus-visible {
-      outline: 2px solid rgba(34, 211, 238, 0.9);
-      outline-offset: 3px;
-    }
-
-    .badge {
-      height: 20px;
-      width: auto;
-      display: inline-block;
-    }
-
-    .img-cover {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .focus-ring:focus-visible {
-      outline: 2px solid rgba(34, 211, 238, 0.9);
-      outline-offset: 4px;
-    }
-
-    .slider {
-      appearance: none;
-      width: 100%;
-      min-height: 44px;
-      background: transparent;
-    }
-
-    .slider::-webkit-slider-runnable-track {
-      height: 6px;
-      border-radius: 9999px;
-      background: linear-gradient(90deg, rgba(34, 211, 238, 0.9) 0%, rgba(14, 165, 233, 0.7) 100%);
-    }
-
-    .slider::-webkit-slider-thumb {
-      appearance: none;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #f8fafc;
-      margin-top: -10px;
-      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
-    }
-
-    .slider::-moz-range-track {
-      height: 6px;
-      border-radius: 9999px;
-      background: linear-gradient(90deg, rgba(34, 211, 238, 0.9) 0%, rgba(14, 165, 233, 0.7) 100%);
-    }
-
-    .slider::-moz-range-thumb {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #f8fafc;
-      border: none;
-      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation: none !important;
-        transition: none !important;
-        scroll-behavior: auto !important;
-      }
-
-      .card:hover {
-        transform: none;
-        box-shadow: none;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <header class="glass-nav">
-    <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-      <div class="flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-400/60 bg-cyan-400/10">
-          <span class="text-xs font-semibold tracking-[0.4em] text-cyan-300">CA</span>
-        </div>
-        <div>
-          <p class="text-xs uppercase tracking-[0.5em] text-cyan-300">Cell-Atlas</p>
-          <p class="text-sm text-slate-400">scRNA-seq • PBMC3k • Leiden • UMAP</p>
-        </div>
+    <header class="site-header">
+      <div class="wrap nav">
+        <a class="brand" href="#inicio">
+          <img class="brand-mark" src="assets/img/favicon.svg" alt="" width="28" height="28">
+          Cell-Atlas
+        </a>
+        <ul class="nav-links" aria-label="Seções">
+          <li><a href="#pipeline">Pipeline</a></li>
+          <li><a href="#resolucao">Resolução</a></li>
+          <li><a href="#resultados">Resultados</a></li>
+          <li><a href="#executar">Executar</a></li>
+          <li><a href="#apresentacao">Apresentação</a></li>
+          <li><a href="aprenda/">Aprenda</a></li>
+          <li><a href="https://github.com/rubenslyra/Cell-Atlas">GitHub</a></li>
+        </ul>
+        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro/escuro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </button>
       </div>
-      <nav class="flex flex-wrap items-center gap-2">
-        <a class="pill focus-ring" href="#overview">Visão geral</a>
-        <a class="pill focus-ring" href="#pipeline">Pipeline</a>
-        <a class="pill focus-ring" href="#results">Resultados</a>
-        <a class="pill focus-ring" href="#simulation">Simulação</a>
-        <a class="pill focus-ring" href="https://github.com/rubenslyra/Cell-Atlas">GitHub</a>
-      </nav>
-    </div>
-  </header>
+    </header>
 
-  <main class="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-10 sm:px-6 sm:py-12 lg:gap-16">
-    <section id="overview" class="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-center">
-      <div>
-        <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.45em] text-cyan-300">
-          <span>Mapa Celular</span>
-          <span class="hidden h-px w-8 bg-cyan-400/60 sm:block"></span>
-          <span>Análise Reprodutível</span>
-        </div>
-        <h1 class="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-          Construindo um atlas celular com base em perfis transcricionais
-        </h1>
-        <p class="mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
-          O Cell-Atlas implementa um pipeline limpo e orientado a objetos para identificar e visualizar populações de
-          células imunes a partir do conjunto PBMC3k. Foco em reprodutibilidade, clareza metodológica e arquitetura extensível.
-        </p>
-        <div class="mt-5 flex flex-wrap items-center gap-2">
-          <img class="badge" src="https://img.shields.io/badge/version-0.2.0-0ea5e9.svg" alt="Versão 0.2.0" width="96" height="20" loading="eager" decoding="async">
-          <img class="badge" src="https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white" alt="Python 3.9+" width="110" height="20" loading="eager" decoding="async">
-          <img class="badge" src="https://img.shields.io/badge/Scanpy-1.12%2B-2563eb.svg" alt="Scanpy 1.12+" width="110" height="20" loading="eager" decoding="async">
-          <img class="badge" src="https://img.shields.io/badge/SemVer-2.0.0-f59e0b.svg" alt="SemVer 2.0.0" width="104" height="20" loading="eager" decoding="async">
-          <img class="badge" src="https://img.shields.io/badge/GitFlow-Workflow-22d3ee.svg" alt="GitFlow" width="118" height="20" loading="eager" decoding="async">
-          <img class="badge" src="https://img.shields.io/badge/License-MIT-22c55e.svg" alt="MIT License" width="78" height="20" loading="eager" decoding="async">
-        </div>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <a class="pill focus-ring border-cyan-400/70 bg-cyan-400/10 text-cyan-200" href="https://github.com/rubenslyra/Cell-Atlas">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-            </svg>
-            Ver projeto completo
-          </a>
-          <a class="pill focus-ring" href="#results">Ver resultados em imagens</a>
-        </div>
+    <main id="conteudo">
+      <div class="wrap">
+        <section class="hero" id="inicio">
+          <div>
+            <p class="eyebrow">scRNA-seq · PBMC3k · Leiden · v0.2.0</p>
+            <h1>Sem dizer ao algoritmo o que procurar, o sangue se organiza em <span>7 tipos imunes</span>.</h1>
+            <p class="lead">O Cell-Atlas é um pipeline Python reprodutível que transforma 2.700 células e 32.738 genes, sem nenhum rótulo, em um mapa celular anotado. Um comando, semente fixa, testes automatizados.</p>
+            <div class="btn-row">
+              <a class="btn btn-primary" href="#executar">Executar o pipeline</a>
+              <a class="btn btn-ghost" href="aprenda/">Aprender os fundamentos</a>
+              <a class="btn btn-ghost" href="treino/">Treinar a apresentação</a>
+              <a class="btn btn-ghost" href="apresentacao/">Ver os slides</a>
+            </div>
+            <div class="meta-row">
+              <span class="pill">Python 3.9+</span>
+              <span class="pill">Scanpy 1.10+</span>
+              <span class="pill">leidenalg + igraph</span>
+              <span class="pill">MIT</span>
+            </div>
+          </div>
+          <figure class="hero-figure">
+            <img src="assets/img/umap_tipos_celulares.png" alt="Mapa UMAP das 2.638 células coloridas por tipo celular sugerido: células T, B, NK, monócitos CD14+ e FCGR3A+, células dendríticas e plaquetas." width="755" height="551" fetchpriority="high">
+            <figcaption>UMAP final com o tipo celular sugerido para cada grupo (Leiden 0,6).</figcaption>
+          </figure>
+        </section>
+
+        <section class="stats" aria-label="Indicadores da execução de referência">
+          <div class="stat"><b>2.638</b><span>células após QC (de 2.700)</span></div>
+          <div class="stat"><b>13.656</b><span>genes mantidos (de 32.738)</span></div>
+          <div class="stat"><b>10</b><span>grupos em Leiden 0,6</span></div>
+          <div class="stat"><b>7</b><span>tipos imunes reencontrados</span></div>
+          <div class="stat"><b>96,8%</b><span>concordância com especialistas</span></div>
+        </section>
       </div>
-      <figure class="card relative overflow-hidden">
-        <div class="aspect-[16/10] w-full">
-          <img class="img-cover" src="assets/img/umap_todas_resolucoes.png" alt="Projeções UMAP com agrupamento Leiden em diferentes resoluções" width="1280" height="800" loading="eager" decoding="async">
+
+      <section class="section" id="pipeline">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="eyebrow">Pipeline</p>
+            <h2>Cinco etapas, do dado bruto ao mapa anotado</h2>
+            <p class="lead">Parâmetros seguem as boas práticas de Luecken &amp; Theis (2019) e ficam centralizados em <code>Config</code>, sobrescrevíveis por arquivo TOML/JSON.</p>
+          </header>
+          <ol class="steps">
+            <li>
+              <h3>Controle de qualidade</h3>
+              <p>Remove células com &lt;200 ou &gt;2.500 genes e &gt;5% de RNA mitocondrial; genes em &lt;3 células.</p>
+              <span class="cmd">cellatlas download / preprocess</span>
+            </li>
+            <li>
+              <h3>Normalização</h3>
+              <p>10 mil contagens por célula + log. Transcriptoma completo guardado em <code>.raw</code>; 2.000 genes variáveis.</p>
+              <span class="cmd">cellatlas preprocess</span>
+            </li>
+            <li>
+              <h3>PCA</h3>
+              <p>Escala e reduz 2.000 dimensões a 10 componentes, onde a curva de variância achata.</p>
+              <span class="cmd">cellatlas preprocess</span>
+            </li>
+            <li>
+              <h3>Grafo k‑NN e Leiden</h3>
+              <p>Cada célula ligada às 15 mais parecidas; Leiden em 0,2 · 0,4 · 0,6 · 1,0; UMAP para visualizar.</p>
+              <span class="cmd">cellatlas cluster</span>
+            </li>
+            <li>
+              <h3>Anotação</h3>
+              <p>Wilcoxon por grupo e escore de marcadores clássicos: cada grupo recebe um tipo celular sugerido.</p>
+              <span class="cmd">cellatlas annotate</span>
+            </li>
+          </ol>
         </div>
-        <figcaption class="flex flex-col gap-1 px-5 py-4 sm:px-6">
-          <p class="text-xs uppercase tracking-widest text-cyan-300">Destaque</p>
-          <p class="text-base font-medium">Leiden: comparação entre resoluções</p>
-          <p class="text-sm text-slate-400">Definição da granularidade ideal para anotação biológica.</p>
-        </figcaption>
-      </figure>
-    </section>
+      </section>
 
-    <section id="pipeline" class="flex flex-col gap-6">
-      <div class="flex flex-col gap-2">
-        <p class="text-sm uppercase tracking-[0.4em] text-cyan-300">Pipeline</p>
-        <h2 class="text-2l# PR Title
-Atualizar readme index html
+      <section class="section band" id="resolucao">
+        <div class="wrap explorer">
+          <div>
+            <header class="section-head">
+              <p class="eyebrow">Explorar</p>
+              <h2>A resolução do Leiden funciona como um zoom</h2>
+              <p class="lead">Mesmas células, mesma semente: só o parâmetro muda. As imagens são as saídas reais do pipeline.</p>
+            </header>
+            <div class="seg" role="radiogroup" aria-label="Resolução do Leiden">
+              <input type="radio" name="res" id="res-02" value="02"><label for="res-02">0,2</label>
+              <input type="radio" name="res" id="res-04" value="04"><label for="res-04">0,4</label>
+              <input type="radio" name="res" id="res-06" value="06" checked><label for="res-06">0,6</label>
+              <input type="radio" name="res" id="res-10" value="10"><label for="res-10">1,0</label>
+            </div>
+            <div class="explorer-count"><b id="res-count">10</b><span>grupos</span></div>
+            <p class="explorer-desc" id="res-desc" aria-live="polite">Resolução usada na anotação: cada tipo imune principal já aparece separado, sem fragmentar populações homogêneas.</p>
+            <div class="bars" aria-hidden="true">
+              <div class="bar-row" data-res="02"><span>0,2</span><i><b class="w6"></b></i><span>6</span></div>
+              <div class="bar-row" data-res="04"><span>0,4</span><i><b class="w9"></b></i><span>9</span></div>
+              <div class="bar-row is-active" data-res="06"><span>0,6</span><i><b class="w10"></b></i><span>10</span></div>
+              <div class="bar-row" data-res="10"><span>1,0</span><i><b class="w13"></b></i><span>13</span></div>
+            </div>
+          </div>
+          <figure class="explorer-figure">
+            <img id="res-img" src="assets/img/res_06.png" alt="UMAP com os 10 grupos encontrados pelo Leiden na resolução 0,6." width="592" height="523">
+          </figure>
+        </div>
+      </section>
 
-## Commit 0
-diff --git a/README.md b/README.md
-index d85b840..21b0175 100644
---- a/README.md
-+++ b/README.md
-@@ -3,30 +3,38 @@
- # Cell-Atlas
- 
- [![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/rubenslyra/Cell-Atlas/releases/tag/v0.2.0)
--[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
--[![Scanpy](https://img.shields.io/badge/Scanpy-1.12%2B-4B8BBE.svg)](https://scanpy.readthedocs.io/)
-+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
-+[![Scanpy](https://img.shields.io/badge/Scanpy-1.10%2B-4B8BBE.svg)](https://scanpy.readthedocs.io)
- [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
- [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-222222.svg?logo=github)](https://rubenslyra.github.io/Cell-Atlas/)
- [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-orange.svg)](https://semver.org/)
- [![GitFlow](https://img.shields.io/badge/Workflow-GitFlow-000000.svg)](https://nvie.com/posts/a-successful-git-branching-model/)
- 
--**Construção de um Mapa Celular por Meio de Análise de Dados de Sequenciamento de RNA de Célula Única**
-+**Single-cell RNA-seq atlas for PBMCs with a reproducible, object-oriented pipeline**
- 
--*Pipeline reprodutível, orientado a objetos e seguindo princípios SOLID para análise de scRNA-seq com o conjunto de referência PBMC3k.*
-+*Construção de um mapa celular com análise reprodutível, arquitetura OOP e princípios SOLID.*
- 
--[Visão Geral](#-visão-geral) • [Arquitetura](#-arquitetura) • [Instalação](#-instalação) • [Execução](#-execução) • [Resultados](#-resultados) • [Documentação](#-documentação) • [Referências](#-referências)
-+[Overview](#overview) • [Architecture](#architecture) • [Installation](#installation) • [Usage](#usage) • [Results](#results) • [Documentation](#documentation) • [References](#references) • [Live Demo](https://rubenslyra.github.io/Cell-Atlas/)
- 
- </div>
- 
- ---
- 
--## 🎯 Visão Geral
-+## Overview
- 
--O **Cell-Atlas** implementa um fluxo completo e reprodutível para aquisição, controle de qualidade, pré-processamento, redução dimensional, agrupamento, visualização e anotação biológica de dados de *single-cell RNA sequencing* (scRNA-seq). 
-+**Cell-Atlas** is a clean, reproducible, and object-oriented framework for single-cell RNA sequencing (scRNA-seq) analysis. It covers the full workflow: data acquisition, quality control, preprocessing, dimensionality reduction, neighborhood graph construction, Leiden clustering, UMAP visualization, and cell-type annotation.
- 
--Utilizando as **células mononucleares de sangue periférico humano (PBMC3k)** da 10x Genomics, o projeto demonstra a capacidade de separar populações celulares imunes conhecidas — linfócitos T, linfócitos B, monócitos e células NK — exclusivamente a partir de seus perfis transcricionais.
-+Using the reference dataset **PBMC3k** (Peripheral Blood Mononuclear Cells, 10x Genomics), the project demonstrates reliable separation of major immune populations (T cells, B cells, monocytes, and NK cells) from transcriptional profiles alone.
- 
--### Objetivos
-+### Key Goals
-+
-+- **Reproducibility** – Deterministic, documented pipeline aligned with current scRNA-seq best practices.
-+- **Methodological rigor** – Follows recommendations from Wolf et al. (2018), Traag et al. (2019), and Luecken & Theis (2019).
-+- **Professional engineering** – SOLID principles, design patterns, modular `src/` layout, and testable components.
-+- **Biological interpretability** – Canonical marker validation and publication-ready visualizations.
-+
-+### Objectives
- 
- 1. **Reprodutibilidade** — Pipeline determinístico, documentado e rastreável seguindo boas práticas da comunidade scRNA-seq.
- 2. **Rigor metodológico** — Baseado em recomendações de Wolf et al. (2018), Traag et al. (2019) e Luecken & Theis (2019).
-@@ -34,7 +42,7 @@ Utilizando as **células mononucleares de sangue periférico humano (PBMC3k)** d
- 4. **Anotação biológica** — Identificação de tipos celulares via genes marcadores canônicos com validação visual por UMAP.
- 
- ---
--## 🏗 Arquitetura
-+## Architecture
- 
- A partir da versão `v0.2.0`, o projeto adota uma arquitetura modular em `src/`:
- 
-@@ -42,7 +50,6 @@ A partir da versão `v0.2.0`, o projeto adota uma arquitetura modular em `src/`:
- Cell-Atlas/
- ├── src/cellatlas/           # Pacote principal (OOP + SOLID)
- │   ├── core/                # Abstrações, interfaces, Config, Pipeline
--│   ├── data/                # Estratégias de carregamento (PBMC3kLoader)
- │   ├── analysis/            # Preprocessamento, Leiden, Anotação
- │   ├── visualization/       # Componentes visuais
- │   ├── utils/               # Logger, validadores, helpers
-@@ -55,6 +62,7 @@ Cell-Atlas/
- ├── pyproject.toml           # Build, dependências e CLI
- ├── CHANGELOG.md             # Histórico (Keep a Changelog + SemVer)
- └── ARTIGO_PROJETO.md        # Artigo acadêmico completo
-+└── dados/                   # Metadata and references
- ```
- 
- ### Princípios aplicados
-@@ -68,32 +76,31 @@ Cell-Atlas/
- - **Padrões** — *Strategy*, *Composition*, *Dependency Injection*.
- 
- ---
--
--## ⚙️ Instalação
-+## Installation
- 
- ### Pré-requisitos
- 
- - Python `>= 3.9`
--- pip atualizado
-+- `pip` >= 23
- - Ambiente virtual (recomendado)
- 
- ### Configuração
- 
- ```bash
--# Clonar repositório
-+# Clone repository
- git clone https://github.com/rubenslyra/Cell-Atlas.git
- cd Cell-Atlas
- 
--# Criar e ativar ambiente virtual
-+# Create and activate virtual environment
- python -m venv venv
--# Windows
-+# Windows
- venv\Scripts\activate
--# Linux/macOS
-+# Linux/macOS
- source venv/bin/activate
- 
--# Instalar dependências
-+# Install dependencies
- pip install -r requisitos.txt
- 
--# (Opcional) Instalar pacote em modo desenvolvimento
-+# (Optional) Install in editable mode
- pip install -e .
- ```
- 
-@@ -101,31 +108,25 @@ pip install -e .
- 
- ## 🚀 Execução
- 
--### Opção 1: Scripts modulares (direto)
-+### Option 1: Python modules (current structure)
- 
--Execute em ordem para reproduzir o pipeline completo:
--
--```bash
--python scripts/01_baixar_dados.py      # Aquisição - PBMC3k (10x Genomics)
--python scripts/02_processar.py        # QC → Filtragem → Normalização → HVG → PCA
--python scripts/03_agrupar.py          # k-NN → UMAP → Leiden (múltiplas resoluções)
--python scripts/04_anotar.py           # Genes marcadores → Anotação biológica
--```
-+The legacy scripts have been moved to branch [`legacy/scripts`](https://github.com/rubenslyra/Cell-Atlas/tree/legacy/scripts). For the current OOP architecture, use the package/CLI workflow.
- 
--### Opção 2: CLI unificado (após `pip install -e .`)
-+### Option 2: CLI (after `pip install -e .`)
- 
- ```bash
--cellatlas download    # Baixar dataset
--cellatlas preprocess  # Pré-processamento
--cellatlas cluster     # Agrupamento Leiden + UMAP
--cellatlas annotate    # Anotação por marcadores
--cellatlas run-all     # Pipeline completo
-+cellatlas download    # Download PBMC3k
-+cellatlas preprocess  # QC, normalization, HVG, PCA
-+cellatlas cluster     # k-NN, UMAP, Leiden (multi-resolution)
-+cellatlas annotate    # Marker detection and annotation
-+cellatlas run-all     # Full pipeline
- ```
- 
- ---
- 
--## 📊 Resultados
-+## Results
-+
-+The pipeline produces publication-ready figures and summaries under `figuras/` and `resultados/`.
- 
- O pipeline gera figuras e tabelas prontas para análise e publicação:
- 
-@@ -136,39 +137,39 @@ O pipeline gera figuras e tabelas prontas para análise e publicação:
- | `figuras/genes_marcadores.png` | Top 5 genes diferencialmente expressos por cluster (Wilcoxon). |
- | `figuras/marcadores_classicos.png` | Expressão de marcadores canônicos projetados em UMAP. |
- | `resultados/resumo_grupos.csv` | Sumário com top genes e contagem por cluster (resolução 0.6). |
--
--### Capturas de Tela
--
- <div align="center">
- 
--#### Variância PCA
--![Variância explicada pela PCA](docs/assets/img/pca_variancia.png)
-+### Screenshots
- 
--*Figura 1 — Variância explicada pelos 10 primeiros componentes principais.*
-+#### PCA Variance
-+![PCA variance ratio](docs/assets/img/pca_variancia.png)
- 
--#### Comparação de Resoluções Leiden
--![UMAP comparando resoluções Leiden](docs/assets/img/umap_todas_resolucoes.png)
-+*Figure 1 – Explained variance by principal components.*
- 
--*Figura 2 — Agrupamento Leiden em resoluções 0.2, 0.4, 0.6 e 1.0.*
-+#### Leiden Resolution Comparison
-+![UMAP Leiden resolutions](docs/assets/img/umap_todas_resolucoes.png)
- 
--#### Genes Marcadores por Cluster
--![Top genes marcadores por cluster](docs/assets/img/genes_marcadores.png)
-+*Figure 2 – Leiden clustering across resolutions 0.2, 0.4, 0.6, 1.0.*
- 
--*Figura 3 — Top 5 genes diferencialmente expressos por cluster (teste de Wilcoxon).*
-+#### Marker Genes per Cluster
-+![Top marker genes](docs/assets/img/genes_marcadores.png)
- 
--#### Marcadores Canônicos em UMAP
--![Marcadores canônicos projetados em UMAP](docs/assets/img/marcadores_classicos.png)
-+*Figure 3 – Top 5 differentially expressed genes per cluster (Wilcoxon).*
- 
--*Figura 4 — Expressão de marcadores canônicos (CD3E, CD3D, TRAC, MS4A1, CD79A, CD14, LYZ, NKG7, GNLY) em projeção UMAP.*
-+#### Canonical Markers on UMAP
-+![Canonical markers](docs/assets/img/marcadores_classicos.png)
-+
-+*Figure 4 – Expression of canonical markers (CD3E, CD3D, TRAC, MS4A1, CD79A, CD14, LYZ, NKG7, GNLY).*
- 
- </div>
- 
--### Sumário dos Clusters (Leiden 0.6)
-+### Cluster Summary (Leiden resolution 0.6)
- 
--| Grupo | Top Genes | Células | Interpretação (sugerida) |
-+| Cluster | Top Genes | Cells | Suggested Annotation |
- | --- | --- | --- | --- |
--| 0 | LTB, IL32, TPT1 | 711 | Linfócitos T |
--| 1 | CCL5, NKG7, B2M | 315 | Linfócitos T citotóxicos / NK |
-+| 0 | LTB, IL32, TPT1 | 711 | T cells |
-+| 1 | CCL5, NKG7, B2M | 315 | Cytotoxic T / NK |
- | 2 | RPL13, RPS3A, RPL21 | 438 | Células em alta atividade translacional |
- | 3 | CD74, CD79A, HLA-DRA | 344 | Linfócitos B |
- | 4 | LST1, COTL1, FCER1G | 206 | Monócitos/Macrófagos |
-@@ -177,41 +178,43 @@ O pipeline gera figuras e tabelas prontas para análise e publicação:
- | 7 | S100A9, LYZ, S100A8 | 433 | Monócotos clássicos |
- | 8 | HLA-DPA1, HLA-DPB1, HLA-DRA | 35 | Células apresentadoras de antígeno |
- 
--> *A anotação final deve ser realizada por comparação com literatura e conhecimento biológico. Os marcadores sugeridos servem as a referência inicial.*
-+> *Final annotation should be refined by literature context. Markers above serve as an initial guide.*
- 
- ---
- 
--## 📚 Documentação
--
--- **[README.md](README.md)** — Visão geral, instalação, execução e resultados
--- **[ARTIGO_PROJETO.md](ARTIGO_PROJETO.md)** — Artigo acadêmico completo com introdução, materiais e métodos, resultados e discussão
--- **[CHANGELOG.md](CHANGELOG.md)** — Histórico de versões seguindo Keep a Changelog e SemVer
--- **[GitHub Pages](https://rubenslyra.github.io/Cell-Atlas/)** — Documentação web interativa com simulação da resolução Leiden
--- **[Releases](https://github.com/rubenslyra/Cell-Atlas/releases)** — Tags `v0.1.0` e `v0.2.0`
--
-----
--
--## 🤝 Contribuição
--
--Contribuições são bem-vindas! Para manter a qualidade e o fluxo GitFlow:
-+## Documentation
- 
--1. Crie uma branch a partir de `develop`: `git checkout -b feature/sua-feature develop`
--2. Faça commits semânticos e, preferencialmente, **assinados** (`git commit -S`)
--3. Abra um *Pull Request* para `develop`
--4. Aguarde revisão antes do merge
-+- **[README.md](README.md)** – Overview, setup, usage, and results
-+- **[ARTIGO_PROJETO.md](ARTIGO_PROJETO.md)** – Full academic paper (PT-BR)
-+- **[CHANGELOG.md](CHANGELOG.md)** – Release history (Keep a Changelog + SemVer)
-+- **[GitHub Pages](https://rubenslyra.github.io/Cell-Atlas/)** – Interactive docs with Leiden resolution simulation
-+- **[Releases](https://github.com/rubenslyra/Cell-Atlas/releases)** – Tags `v0.1.0` and `v0.2.0`
-+- **[Legacy scripts](https://github.com/rubenslyra/Cell-Atlas/tree/legacy/scripts)** – Original sequential scripts preserved
- 
- ---
- 
--## 📝 Referências
-+## Contributing
-+
-+Contributions are welcome. Please follow GitFlow:
- 
--- Wolf, F. A., Angerer, P. & Theis, F. J. SCANPY: large-scale single-cell gene expression data analysis. *Genome Biol.* 19, 15 (2018). [https://doi.org/10.1186/s13059-017-1382-0](https://doi.org/10.1186/s13059-017-1382-0)
--- Traag, V. A., Waltman, L. & van Eck, N. J. From Louvain to Leiden: guaranteeing well-connected communities. *Sci. Rep.* 9, 5233 (2019). [https://doi.org/10.1038/s41598-019-41695-z](https://doi.org/10.1038/s41598-019-41695-z)
--- Luecken, M. D. & Theis, F. J. Current best practices in single-cell RNA-seq analysis: a tutorial. *Mol. Syst. Biol.* 15, e8746 (2019). [https://doi.org/10.15252/msb.20188746](https://doi.org/10.15252/msb.20188746)
--- Zheng, G. X. Y. et al. Massively parallel digital transcriptional profiling of single cells. *Nat. Commun.* 8, 14049 (2017). [https://doi.org/10.1038/ncomms14049](https://doi.org/10.1038/ncomms14049)
--- 10x Genomics — *Official PBMC3k Dataset* ([https://www.10xgenomics.com/resources/datasets](https://www.10xgenomics.com/resources/datasets))
-+1. Branch from `develop`: `git checkout -b feature/your-feature develop`
-+2. Use semantic, preferably signed commits: `git commit -S -m "feat: ..."`
-+3. Open a Pull Request to `develop`
-+4. Ensure tests/formatting pass before merge
- 
- ---
- 
-+## References
-+
-+- Wolf, F. A., Angerer, P. & Theis, F. J. SCANPY: large-scale single-cell gene expression data analysis. *Genome Biol.* 19, 15 (2018). https://doi.org/10.1186/s13059-017-1382-0
-+- Traag, V. A., Waltman, L. & van Eck, N. J. From Louvain to Leiden: guaranteeing well-connected communities. *Sci. Rep.* 9, 5233 (2019). https://doi.org/10.1038/s41598-019-41695-z
-+- Luecken, M. D. & Theis, F. J. Current best practices in single-cell RNA-seq analysis: a tutorial. *Mol. Syst. Biol.* 15, e8746 (2019). https://doi.org/10.15252/msb.20188746
-+- Zheng, G. X. Y. et al. Massively parallel digital transcriptional profiling of single cells. *Nat. Commun.* 8, 14049 (2017). https://doi.org/10.1038/ncomms14049
-+- 10x Genomics – Official PBMC3k Dataset: https://www.10xgenomics.com/resources/datasets
-+
-+---
- <div align="center">
- 
- **Cell-Atlas** — Mapeando a heterogeneidade celular com rigor computacional e biológico.
-diff --git a/docs/index.html b/docs/index.html
-index 3447a88..5e66c9b 100644
---- a/docs/index.html
-+++ b/docs/index.html
-@@ -2,214 +2,175 @@
- <html lang="pt-BR">
- 
- <head>
--  <meta charset="UTF-8">
--  <meta http-equiv="X-UA-Compatible" content="IE=edge">
--  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-+  <meta charset="utf-8">
-+  <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Cell-Atlas | Mapa Celular por scRNA-seq</title>
-   <meta name="description"
--    content="Cell-Atlas: pipeline reprodutível e orientado a objetos para análise de scRNA-seq com PBMC3k, agrupamento Leiden, UMAP e anotação de tipos celulares. Arquitetura com princípios SOLID, GitFlow e SemVer.">
-+    content="Cell-Atlas: pipeline reprodutível e orientado a objetos para análise de scRNA-seq com PBMC3k, agrupamento Leiden, UMAP e anotação de tipos celulares.">
-   <meta name="robots" content="index, follow">
-   <meta http-equiv="Content-Security-Policy"
--    content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://img.shields.io; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests">
-+    content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://img.shields.io; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
-   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-   <meta http-equiv="X-Content-Type-Options" content="nosniff">
-   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
-   <link rel="icon" href="data:,">
-   <link rel="preconnect" href="https://fonts.googleapis.com">
-   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
--  <link href="https://fonts.googleapis.com/css2?family=Inter:wght:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
--  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13/dist/index.global.js"></script>
--  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
--    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-   <style>
-     :root {
--      --bg-primary: #0f0f0f;
--      --bg-secondary: #161616;
--      --bg-tertiary: #1f1f1f;
--      --bg-card: linear-gradient(180deg, rgba(34, 211, 238, 0.08) 0%, rgba(31, 31, 31, 0.98) 100%);
--      --border: rgba(148, 163, 184, 0.18);
--      --text-primary: #f8fafc;
--      --text-secondary: #cbd5e1;
--      --text-tertiary: #94a3b8;
--      --accent: #22d3ee;
--      --accent-strong: #06b6d4;
-+      --bg: #0b0b0f;
-+      --surface: #151519;
-+      --surface-2: #1d1d23;
-+      --border: rgba(148, 163, 184, 0.16);
-+      --text: #f8fafc;
-+      --text-subtle: #cbd5e1;
-+      --text-muted: #94a3b8;
-+      --cyan: #22d3ee;
-+      --cyan-strong: #06b6d4;
-+      --blue: #38bdf8;
-+      --glow: radial-gradient(1200px 600px at 50% -10%, rgba(34, 211, 238, 0.12), transparent);
-     }
- 
-     * {
--      scroll-behavior: smooth;
--      scroll-padding-top: 88px;
-+      box-sizing: border-box;
-+      margin: 0;
-+      padding: 0;
-+      font: inherit;
-+    }
-+
-+    html {
-+      scroll-behavior: smooth;
-+      scroll-padding-top: 96px;
-     }
- 
-     body {
-       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
--      background: radial-gradient(140% 140% at 50% 0%, rgba(34, 211, 238, 0.05) 0%, transparent 60%), var(--bg-primary);
--      color: var(--text-primary);
-+      background: var(--bg);
-+      color: var(--text);
-       line-height: 1.8;
-       -webkit-font-smoothing: antialiased;
-       -moz-osx-font-smoothing: grayscale;
-+      text-rendering: optimizeLegibility;
-     }
- 
--    code {
--      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-+    img {
-+      max-width: 100%;
-+      display: block;
-+      height: auto;
-     }
- 
--    .glass-nav {
-+    a {
-+      color: inherit;
-+      text-decoration: none;
-+    }
-+
-+    header {
-       position: sticky;
-       top: 0;
-       z-index: 50;
-       backdrop-filter: blur(14px);
-       -webkit-backdrop-filter: blur(14px);
--      background: linear-gradient(180deg, rgba(15, 15, 15, 0.98) 0%, rgba(15, 15, 15, 0.9) 100%);
-+      background: linear-gradient(180deg, rgba(11, 11, 15, 0.98) 0%, rgba(11, 11, 15, 0.9) 100%);
-       border-bottom: 1px solid var(--border);
-     }
- 
--    .card {
--      background: var(--bg-card);
--      border: 1px solid var(--border);
--      border-radius: 1.5rem;
--      transition: all 0.25s ease;
-+    .nav {
-+      display: flex;
-+      align-items: center;
-+      justify-content: space-between;
-+      gap: 1rem;
-+      flex-wrap: wrap;
-+      margin: 0 auto;
-+      max-width: 1120px;
-+      padding: 0.8rem 1.25rem;
-     }
- 
--    .card:hover {
--      transform: translateY(-4px);
--      border-color: rgba(34, 211, 238, 0.5);
--      box-shadow: 0 60px 120px -90px rgba(34, 211, 238, 0.4);
-+    .brand {
-+      display: flex;
-+      align-items: center;
-+      gap: 0.9rem;
-     }
- 
--    .pill {
-+    .brand-mark {
-       display: inline-flex;
-       align-items: center;
-+      justify-content: center;
-+      width: 2.6rem;
-+      height: 2.6rem;
-+      border-radius: 999px;
-+      border: 1px solid rgba(34, 211, 238, 0.6);
-+      background: radial-gradient(circle, rgba(34, 211, 238, 0.25), transparent);
-+      color: var(--cyan);
-+      font-size: 0.75rem;
-+      letter-spacing: 0.4em;
-+      text-transform: uppercase;
-+    }
-+
-+    .brand-text {
-+      display: flex;
-+      flex-direction: column;
-       gap: 0.4rem;
-+    }
-+
-+    .brand-title {
-+      font-size: 0.9rem;
-+      text-transform: uppercase;
-+      letter-spacing: 0.5em;
-+      color: var(--cyan);
-+    }
-+
-+    .brand-subtitle {
-+      font-size: 0.9rem;
-+      color: var(--text-muted);
-+    }
-+
-+    .nav-links {
-+      display: flex;
-+      flex-wrap: wrap;
-+      align-items: center;
-+      gap: 0.6rem;
-+    }
-+
-+    .nav-link {
-+      display: inline-flex;
-+      align-items: center;
-+      justify-content: center;
-+      min-height: 44px;
-+      padding: 0 1rem;
-       border-radius: 9999px;
-       border: 1px solid var(--border);
--      padding: 0.4rem 0.9rem;
-       font-size: 0.875rem;
--      color: var(--text-secondary);
--      transition: all 0.25s ease;
--      min-height: 44px;
-+      color: var(--text-subtle);
-+      transition: all 0.3s ease;
-     }
- 
--    .pill:hover {
-+    .nav-link:hover {
-       border-color: rgba(34, 211, 238, 0.6);
--      color: var(--accent);
-+      color: var(--cyan);
-     }
- 
--    .pill:focus-visible {
-+    .nav-link:focus-visible {
-       outline: 2px solid rgba(34, 211, 238, 0.9);
-       outline-offset: 3px;
-     }
- 
--    .badge {
--      height: 20px;
--      width: auto;
--      display: inline-block;
--    }
--
--    .img-cover {
--      width: 100%;
--      height: 100%;
--      object-fit: cover;
--    }
--
--    .focus-ring:focus-visible {
--      outline: 2px solid rgba(34, 211, 238, 0.9);
--      outline-offset: 4px;
--    }
--
--    .slider {
--      appearance: none;
--      width: 100%;
--      min-height: 44px;
--      background: transparent;
--    }
--
--    .slider::-webkit-slider-runnable-track {
--      height: 6px;
--      border-radius: 9999px;
--      background: linear-gradient(90deg, rgba(34, 211, 238, 0.9) 0%, rgba(14, 165, 233, 0.7) 100%);
--    }
--
--    .slider::-webkit-slider-thumb {
--      appearance: none;
--      width: 26px;
--      height: 26px;
--      border-radius: 50%;
--      background: #f8fafc;
--      margin-top: -10px;
--      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
--    }
--
--    .slider::-moz-range-track {
--      height: 6px;
--      border-radius: 9999px;
--      background: linear-gradient(90deg, rgba(34, 211, 238, 0.9) 0%, rgba(14, 165, 233, 0.7) 100%);
--    }
--
--    .slider::-moz-range-thumb {
--      width: 26px;
--      height: 26px;
--      border-radius: 50%;
--      background: #f8fafc;
--      border: none;
--      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
--    }
--
--    @media (prefers-reduced-motion: reduce) {
--      *,
--      *::before,
--      *::after {
--        animation: none !important;
--        transition: none !important;
--        scroll-behavior: auto !important;
--      }
--
--      .card:hover {
--        transform: none;
--        box-shadow: none;
--      }
--    }
--  </style>
--</head>
--
--<body>
--  <header class="glass-nav">
--    <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
--      <div class="flex items-center gap-3">
--        <div class="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-400/60 bg-cyan-400/10">
--          <span class="text-xs font-semibold tracking-[0.4em] text-cyan-300">CA</span>
--        </div>
--        <div>
--          <p class="text-xs uppercase tracking-[0.5em] text-cyan-300">Cell-Atlas</p>
--          <p class="text-sm text-slate-400">scRNA-seq • PBMC3k • Leiden • UMAP</p>
--        </div>
--      </div>
--      <nav class="flex flex-wrap items-center gap-2">
--        <a class="pill focus-ring" href="#overview">Visão geral</a>
--        <a class="pill focus-ring" href="#pipeline">Pipeline</a>
--        <a class="pill focus-ring" href="#results">Resultados</a>
--        <a class="pill focus-ring" href="#simulation">Simulação</a>
--        <a class="pill focus-ring" href="https://github.com/rubenslyra/Cell-Atlas">GitHub</a>
--      </nav>
--    </div>
--  </header>
--
--  <main class="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-10 sm:px-6 sm:py-12 lg:gap-16">
--    <section id="overview" class="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-center">
--      <div>
--        <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.45em] text-cyan-300">
--          <span>Mapa Celular</span>
--          <span class="hidden h-px w-8 bg-cyan-400/60 sm:block"></span>
--          <span>Análise Reprodutível</span>
--        </div>
--        <h1 class="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
--          Construindo um atlas celular com base em perfis transcricionais
--        </h1>
--        <p class="mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
--          O Cell-Atlas implementa um pipeline limpo e orientado a objetos para identificar e visualizar populações de
--          células imunes a partir do conjunto PBMC3k. Foco em reprodutibilidade, clareza metodológica e arquitetura extensível.
--        </p>
--        <div class="mt-5 flex flex-wrap items-center gap-2">
--          <img class="badge" src="https://img.shields.io/badge/version-0.2.0-0ea5e9.svg" alt="Versão 0.2.0" width="96" height="20" loading="eager" decoding="async">
--          <img class="badge" src="https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white" alt="Python 3.9+" width="110" height="20" loading="eager" decoding="async">
--          <img class="badge" src="https://img.shields.io/badge/Scanpy-1.12%2B-2563eb.svg" alt="Scanpy 1.12+" width="110" height="20" loading="eager" decoding="async">
--          <img class="badge" src="https://img.shields.io/badge/SemVer-2.0.0-f59e0b.svg" alt="SemVer 2.0.0" width="104" height="20" loading="eager" decoding="async">
--          <img class="badge" src="https://img.shields.io/badge/GitFlow-Workflow-22d3ee.svg" alt="GitFlow" width="118" height="20" loading="eager" decoding="async">
--          <img class="badge" src="https://img.shields.io/badge/License-MIT-22c55e.svg" alt="MIT License" width="78" height="20" loading="eager" decoding="async">
-+    .nav-cta {
-+      display: inline-flex;
-+      align-items: center;
-+      justify-content: center;
-+      min-height: 44px;
-+      padding: 0 1.2rem;
-+      border-radius: 9999px;
-+      border: 1px solid rgba(34, 211, 238, 0.7);
-+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.2), transparent);
-+      color: var(--cyan);
-+      font-size: 0.875rem;
-+      transition: all 0.3s ease;
-+    }
-+
-+    .nav-cta:hover {
-+      background: rgba(34, 211, 238, 0.25);
-+    }
-+
-+    .nav-cta:focus-visible {
-+      outline: 2px solid rgba(34, 211, 238, 0.9);
-+      outline-offset: 3px;
-+    }
-+
-+    main {
-+      position: relative;
-+      margin: 0 auto;
-+      max-width: 1120px;
-+      display: flex;
-+      flex-direction: column;
-+      gap: 4rem;
-+      padding: 2.5rem 1.25rem 4rem;
-+    }
-+
-+    main::before {
-+      content: "";
-+      position: absolute;
-+      inset: 0;
-+      pointer-events: none;
-+      background: var(--glow);
-+    }
-+
-+    main > * {
-+      position: relative;
-+    }
-+
-+    .hero {
-+      display: grid;
-+      gap: 2.5rem;
-+      align-items: center;
-+    }
-+
-+    @media (min-width: 980px) {
-+      .hero {
-+        grid-template-columns: repeat(2, minmax(0, 1fr));
-+      }
-+    }
-+
-+    .eyebrow {
-+      display: flex;
-+      align-items: center;
-+      gap: 0.8rem;
-+      text-transform: uppercase;
-+      letter-spacing: 0.5em;
-+      font-size: 0.8rem;
-+      color: var(--cyan);
-+    }
-+
-+    .eyebrow::after {
-+      content: "";
-+      width: 2.5rem;
-+      height: 1px;
-+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.9), transparent);
-+    }
-+
-+    .hero-title {
-+      margin-top: 1.2rem;
-+      font-size: clamp(2.4rem, 4vw, 4.8rem);
-+      line-height: 1.05;
-+      font-weight: 600;
-+      letter-spacing: -0.02em;
-+    }
-+
-+    .hero-text {
-+      margin-top: 1.2rem;
-+      max-width: 580px;
-+      font-size: clamp(1rem, 1.2vw, 1.1rem);
-+      color: var(--text-subtle);
-+    }
-+
-+    .badges {
-+      display: flex;
-+      flex-wrap: wrap;
-+      align-items: center;
-+      gap: 0.5rem;
-+      margin-top: 1.8rem;
-+    }
-+
-+    .badge {
-+      height: 20px;
-+      width: auto;
-+    }
-+
-+    .cta-group {
-+      display: flex;
-+      flex-wrap: wrap;
-+      gap: 0.8rem;
-+      margin-top: 2rem;
-+    }
-+
-+    .btn {
-+      display: inline-flex;
-+      align-items: center;
-+      justify-content: center;
-+      gap: 0.5rem;
-+      min-height: 48px;
-+      padding: 0 1.8rem;
-+      border-radius: 9999px;
-+      border: 1px solid transparent;
-+      font-size: 0.98rem;
-+      transition: all 0.3s ease;
-+    }
-+
-+    .btn-primary {
-+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.95), rgba(14, 165, 233, 0.9));
-+      color: #041016;
-+      font-weight: 500;
-+    }
-+
-+    .btn-primary:hover {
-+      filter: brightness(1.05);
-+    }
-+
-+    .btn-ghost {
-+      border-color: var(--border);
-+      color: var(--text);
-+    }
-+
-+    .btn-ghost:hover {
-+      border-color: rgba(34, 211, 238, 0.6);
-+      color: var(--cyan);
-+    }
-+
-+    .btn:focus-visible {
-+      outline: 2px solid rgba(34, 211, 238, 0.9);
-+      outline-offset: 4px;
-+    }
-+
-+    .preview {
-+      position: relative;
-+      border-radius: 1.8rem;
-+      overflow: hidden;
-+      border: 1px solid var(--border);
-+      box-shadow: 0 120px 200px -160px rgba(34, 211, 238, 0.5);
-+    }
-+
-+    .preview::after {
-+      content: "";
-+      position: absolute;
-+      inset: 0;
-+      background: radial-gradient(400px 200px at 50% 100%, rgba(34, 211, 238, 0.18), transparent);
-+    }
-+
-+    .preview img {
-+      position: relative;
-+      width: 100%;
-+      height: 100%;
-+      object-fit: cover;
-+    }
-+
-+    .preview-caption {
-+      position: absolute;
-+      left: 0;
-+      right: 0;
-+      bottom: 0;
-+      display: flex;
-+      flex-direction: column;
-+      gap: 0.4rem;
-+      padding: 1.6rem 2rem;
-+      background: linear-gradient(180deg, transparent, rgba(11, 11, 15, 0.95));
-+    }
-+
-+    .caption-eyebrow {
-+      text-transform: uppercase;
-+      letter-spacing: 0.4em;
-+      font-size: 0.75rem;
-+      color: var(--cyan);
-+    }
-+
-+    .caption-title {
-+      font-size: 1.2rem;
-+      font-weight: 500;
-+    }
-+
-+    .caption-text {
-+      color: var(--text-muted);
-+    }
-+
-+    .section-header {
-+      display: flex;
-+      flex-direction: column;
-+      gap: 0.8rem;
-+    }
-+
-+    .section-title {
-+      font-size: clamp(2rem, 3vw, 3.2rem);
-+      font-weight: 600;
-+      letter-spacing: -0.01em;
-+    }
-+
-+    .section-text {
-+      max-width: 720px;
-+      color: var(--text-subtle);
-+      font-size: clamp(1rem, 1.1vw, 1.05rem);
-+    }
-+
-+    .grid {
-+      display: grid;
-+      gap: 1rem;
-+    }
-+
-+    @media (min-width: 720px) {
-+      .grid-2 {
-+        grid-template-columns: repeat(2, minmax(0, 1fr));
-+      }
-+    }
-+
-+    @media (min-width: 1080px) {
-+      .grid-4 {
-+        grid-template-columns: repeat(4, minmax(0, 1fr));
-+      }
-+    }
-+
-+    .card {
-+      position: relative;
-+      display: flex;
-+      flex-direction: column;
-+      gap: 1rem;
-+      border-radius: 1.4rem;
-+      border: 1px solid var(--border);
-+      background: radial-gradient(400px 200px at 50% 0%, rgba(34, 211, 238, 0.1), transparent), var(--surface);
-+      padding: 1.8rem;
-+      transition: all 0.3s ease;
-+      min-height: 100%;
-+    }
-+
-+    .card:hover {
-+      transform: translateY(-6px);
-+      border-color: rgba(34, 211, 238, 0.5);
-+      box-shadow: 0 80px 140px -110px rgba(34, 211, 238, 0.4);
-+    }
-+
-+    .card:focus-within {
-+      border-color: rgba(34, 211, 238, 0.6);
-+    }
-+
-+    .card-header {
-+      display: flex;
-+      align-items: center;
-+      justify-content: space-between;
-+    }
-+
-+    .card-step {
-+      color: var(--cyan);
-+    }
-+
-+    .card-pill {
-+      border-radius: 999px;
-+      border: 1px solid rgba(34, 211, 238, 0.4);
-+      padding: 0.3rem 0.8rem;
-+      font-size: 0.85rem;
-+      color: var(--cyan);
-+    }
-+
-+    .card-title {
-+      font-size: 1.3rem;
-+      font-weight: 500;
-+    }
-+
-+    .card-text {
-+      color: var(--text-muted);
-+    }
-+
-+    .gallery-grid {
-+      display: grid;
-+      gap: 1.2rem;
-+    }
-+
-+    @media (min-width: 920px) {
-+      .gallery-grid {
-+        grid-template-columns: repeat(2, minmax(0, 1fr));
-+      }
-+    }
-+
-+    .figure {
-+      display: flex;
-+      flex-direction: column;
-+      border-radius: 1.6rem;
-+      overflow: hidden;
-+      border: 1px solid var(--border);
-+      background: var(--surface);
-+      transition: all 0.3s ease;
-+    }
-+
-+    .figure:hover {
-+      transform: translateY(-6px);
-+      border-color: rgba(34, 211, 238, 0.5);
-+      box-shadow: 0 90px 150px -120px rgba(34, 211, 238, 0.4);
-+    }
-+
-+    .figure-media {
-+      position: relative;
-+      aspect-ratio: 16 / 10;
-+    }
-+
-+    .figure-media img {
-+      width: 100%;
-+      height: 100%;
-+      object-fit: cover;
-+    }
-+
-+    .figure-body {
-+      display: flex;
-+      flex-direction: column;
-+      gap: 0.6rem;
-+      padding: 1.6rem 2rem;
-+    }
-+
-+    .figure-meta {
-+      display: flex;
-+      align-items: center;
-+      justify-content: space-between;
-+    }
-+
-+    .figure-eyebrow {
-+      text-transform: uppercase;
-+      letter-spacing: 0.4em;
-+      font-size: 0.75rem;
-+      color: var(--cyan);
-+    }
-+
-+    .figure-subtle {
-+      color: var(--text-muted);
-+      font-size: 0.9rem;
-+    }
-+
-+    .figure-title {
-+      font-size: 1.4rem;
-+      font-weight: 500;
-+    }
-+
-+    .figure-text {
-+      color: var(--text-muted);
-+    }
-+
-+    .simulation {
-+      display: grid;
-+      gap: 1.2rem;
-+    }
-+
-+    @media (min-width: 980px) {
-+      .simulation {
-+        grid-template-columns: repeat(2, minmax(0, 1fr));
-+      }
-+    }
-+
-+    .panel {
-+      display: flex;
-+      flex-direction: column;
-+      gap: 1.6rem;
-+      border-radius: 1.6rem;
-+      border: 1px solid var(--border);
-+      background: radial-gradient(400px 200px at 50% 0%, rgba(34, 211, 238, 0.08), transparent), var(--surface);
-+      padding: clamp(1.6rem, 4vw, 2.4rem);
-+    }
-+
-+    .panel-header {
-+      display: flex;
-+      align-items: center;
-+      justify-content: space-between;
-+    }
-+
-+    .panel-title {
-+      font-size: 1.4rem;
-+      font-weight: 500;
-+    }
-+
-+    .panel-subtle {
-+      color: var(--text-muted);
-+    }
-+
-+    .range-row {
-+      display: flex;
-+      align-items: center;
-+      justify-content: space-between;
-+    }
-+
-+    .range-label {
-+      color: var(--text-subtle);
-+    }
-+
-+    .range-value {
-+      font-size: 1.6rem;
-+      color: var(--cyan);
-+    }
-+
-+    .slider {
-+      width: 100%;
-+      min-height: 44px;
-+      appearance: none;
-+      background: transparent;
-+    }
-+
-+    .slider::-webkit-slider-runnable-track {
-+      height: 6px;
-+      border-radius: 999px;
-+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.95), rgba(14, 165, 233, 0.7));
-+    }
-+
-+    .slider::-webkit-slider-thumb {
-+      appearance: none;
-+      width: 28px;
-+      height: 28px;
-+      border-radius: 50%;
-+      background: radial-gradient(circle, #f8fafc, #22d3ee);
-+      margin-top: -11px;
-+      box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.16);
-+    }
-+
-+    .slider::-moz-range-track {
-+      height: 6px;
-+      border-radius: 999px;
-+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.95), rgba(14, 165, 233, 0.7));
-+    }
-+
-+    .slider::-moz-range-thumb {
-+      width: 28px;
-+      height: 28px;
-+      border-radius: 50%;
-+      background: radial-gradient(circle, #f8fafc, #22d3ee);
-+      border: none;
-+      box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.16);
-+    }
-+
-+    .slider:focus-visible {
-+      outline: 2px solid rgba(34, 211, 238, 0.9);
-+      outline-offset: 6px;
-+    }
-+
-+    .stat {
-+      display: flex;
-+      flex-direction: column;
-+      gap: 0.6rem;
-+      border-radius: 1.2rem;
-+      border: 1px solid var(--border);
-+      background: var(--surface-2);
-+      padding: 1.6rem;
-+    }
-+
-+    .stat-eyebrow {
-+      text-transform: uppercase;
-+      letter-spacing: 0.4em;
-+      font-size: 0.75rem;
-+      color: var(--cyan);
-+    }
-+
-+    .stat-value {
-+      display: flex;
-+      align-items: baseline;
-+      gap: 0.6rem;
-+      font-size: clamp(3rem, 6vw, 4.6rem);
-+    }
-+
-+    .stat-unit {
-+      font-size: 1.2rem;
-+      color: var(--text-muted);
-+    }
-+
-+    .chip-row {
-+      display: flex;
-+      flex-wrap: wrap;
-+      gap: 0.6rem;
-+    }
-+
-+    .chip {
-+      border-radius: 999px;
-+      border: 1px solid var(--border);
-+      padding: 0.4rem 0.9rem;
-+      font-size: 0.9rem;
-+      color: var(--text-subtle);
-+    }
-+
-+    .plot {
-+      display: flex;
-+      flex-direction: column;
-+      gap: 1rem;
-+      border-radius: 1.6rem;
-+      border: 1px solid var(--border);
-+      background: radial-gradient(400px 220px at 50% 0%, rgba(34, 211, 238, 0.08), transparent), var(--surface);
-+      padding: clamp(1.6rem, 4vw, 2.4rem);
-+    }
-+
-+    .plot svg {
-+      width: 100%;
-+      height: auto;
-+    }
-+
-+    footer {
-+      border-top: 1px solid var(--border);
-+    }
-+
-+    .footer-inner {
-+      display: flex;
-+      flex-direction: column;
-+      gap: 2rem;
-+      margin: 0 auto;
-+      max-width: 1120px;
-+      padding: 2.4rem 1.25rem;
-+    }
-+
-+    @media (min-width: 880px) {
-+      .footer-inner {
-+        flex-direction: row;
-+        align-items: center;
-+        justify-content: space-between;
-+      }
-+    }
-+
-+    .footer-brand {
-+      display: flex;
-+      flex-direction: column;
-+      gap: 0.8rem;
-+    }
-+
-+    .footer-title {
-+      text-transform: uppercase;
-+      letter-spacing: 0.5em;
-+      font-size: 0.85rem;
-+      color: var(--cyan);
-+    }
-+
-+    .footer-text {
-+      max-width: 520px;
-+      color: var(--text-muted);
-+    }
-+
-+    .footer-badges {
-+      display: flex;
-+      flex-wrap: wrap;
-+      gap: 0.5rem;
-+    }
-+
-+    .footer-links {
-+      display: flex;
-+      flex-direction: column;
-+      align-items: flex-start;
-+      gap: 0.6rem;
-+      color: var(--text-muted);
-+    }
-+
-+    @media (min-width: 880px) {
-+      .footer-links {
-+        align-items: flex-end;
-+      }
-+    }
-+
-+    .footer-link {
-+      transition: color 0.3s ease;
-+    }
-+
-+    .footer-link:hover {
-+      color: var(--cyan);
-+    }
-+
-+    @media (prefers-reduced-motion: reduce) {
-+      html {
-+        scroll-behavior: auto;
-+      }
-+
-+      .card:hover,
-+      .figure:hover {
-+        transform: none;
-+        box-shadow: none;
-+      }
-+    }
-+  </style>
-+</head>
-+
-+<body>
-+  <header>
-+    <nav class="nav">
-+      <div class="brand">
-+        <div class="brand-mark">CA</div>
-+        <div class="brand-text">
-+          <span class="brand-title">Cell-Atlas</span>
-+          <span class="brand-subtitle">scRNA-seq • PBMC3k • Leiden • UMAP</span>
-         </div>
--        <div class="mt-6 flex flex-wrap gap-3">
--          <a class="pill focus-ring border-cyan-400/70 bg-cyan-400/10 text-cyan-200" href="https://github.com/rubenslyra/Cell-Atlas">
--            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
--              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
--            </svg>
--            Ver projeto completo
--          </a>
--          <a class="pill focus-ring" href="#results">Ver resultados em imagens</a>
-+      </div>
-+      <div class="nav-links">
-+        <a class="nav-link" href="#overview">Visão geral</a>
-+        <a class="nav-link" href="#pipeline">Pipeline</a>
-+        <a class="nav-link" href="#results">Resultados</a>
-+        <a class="nav-link" href="#simulation">Simulação</a>
-+        <a class="nav-cta" href="https://github.com/rubenslyra/Cell-Atlas">Repositório</a>
-+      </div>
-+    </nav>
-+  </header>
-+
-+  <main>
-+    <section id="overview" class="hero">
-+      <div>
-+        <div class="eyebrow">
-+          <span>Single-cell Atlas</span>
-         </div>
--      </div>
--      <figure class="card relative overflow-hidden">
--        <div class="aspect-[16/10] w-full">
--          <img class="img-cover" src="assets/img/umap_todas_resolucoes.png" alt="Projeções UMAP com agrupamento Leiden em diferentes resoluções" width="1280" height="800" loading="eager" decoding="async">
-+        <h1 class="hero-title">Mapa celular reprodutível para PBMCs humanos</h1>
-+        <p class="hero-text">
-+          Um fluxo orientado a objetos, com princípios SOLID e boas práticas de bioinformática, para transformar matrizes
-+          de expressão em populações imunes interpretáveis com rigor científico.
-+        </p>
-+        <div class="badges">
-+          <img class="badge" src="https://img.shields.io/badge/version-0.2.0-0ea5e9.svg" alt="Versão 0.2.0" width="96" height="20" loading="eager" decoding="async">
-+          <img class="badge" src="https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white" alt="Python 3.9+" width="110" height="20" loading="eager" decoding="async">
-+          <img class="badge" src="https://img.shields.io/badge/Scanpy-1.10%2B-2563eb.svg" alt="Scanpy 1.10+" width="110" height="20" loading="eager" decoding="async">
-+          <img class="badge" src="https://img.shields.io/badge/SemVer-2.0.0-f59e0b.svg" alt="SemVer 2.0.0" width="104" height="20" loading="eager" decoding="async">
-+          <img class="badge" src="https://img.shields.io/badge/GitFlow-Workflow-22d3ee.svg" alt="GitFlow" width="118" height="20" loading="eager" decoding="async">
-+          <img class="badge" src="https://img.shields.io/badge/License-MIT-22c55e.svg" alt="MIT" width="78" height="20" loading="eager" decoding="async">
-         </div>
--        <figcaption class="flex flex-col gap-1 px-5 py-4 sm:px-6">
--          <p class="text-xs uppercase tracking-widest text-cyan-300">Destaque</p>
--          <p class="text-base font-medium">Leiden: comparação entre resoluções</p>
--          <p class="text-sm text-slate-400">Definição da granularidade ideal para anotação biológica.</p>
--        </figcaption>
--      </figure>
-+        <div class="cta-group">
-+          <a class="btn btn-primary" href="https://github.com/rubenslyra/Cell-Atlas">
-+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-+              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.41 7.86 10.94.58.11.79-.25.79-.56v-2.02c-3.2.7-3.87-1.54-3.87-1.54-.53-1.35-1.29-1.71-1.29-1.71-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.75.41-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.71 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.71.42.36.8 1.08.8 2.18v3.23c0 .31.21.68.8.56A10.99 10.99 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/>
-+            </svg>
-+            Explorar no GitHub
-+          </a>
-+          <a class="btn btn-ghost" href="#results">Ver figuras geradas</a>
-+        </div>
-+      </div>
-+      <figure class="preview">
-+        <img src="assets/img/umap_todas_resolucoes.png" alt="Comparação das projeções UMAP com agrupamento Leiden em resoluções 0.2, 0.4, 0.6 e 1.0" width="1280" height="800" loading="eager" decoding="async">
-+        <figcaption class="preview-caption">
-+          <span class="caption-eyebrow">Destaque</span>
-+          <span class="caption-title">Leiden multi-resolução</span>
-+          <span class="caption-text">Escolha da granularidade para anotação biológica confiável</span>
-+        </figcaption>
-+      </figure>
-     </section>
- 
-     <section id="pipeline" class="flex flex-col gap-6">
--      <div class="flex flex-col gap-2">
--        <p class="text-sm uppercase tracking-[0.4em] text-cyan-300">Pipeline</p>
--        <h2 class="text-2l# PR
-```
+      <section class="section" id="resultados">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="eyebrow">Resultados</p>
+            <h2>Dez grupos, sete tipos celulares</h2>
+            <p class="lead">Células T somam 1.464 das 2.638 células (55%), como esperado no sangue saudável. Até as 14 plaquetas (0,5%) formam um grupo próprio. Comparada aos rótulos de especialistas do tutorial clássico, a anotação automática concorda em <strong>96,8% das células</strong> (ARI 0,96; <code>cellatlas compare</code>, <a href="aprenda/#validacao">detalhes</a>).</p>
+          </header>
+          <div class="table-wrap">
+            <table>
+              <caption>resultados/resumo_grupos.csv · Leiden 0,6 · random_state = 0</caption>
+              <thead>
+                <tr><th scope="col">Grupo</th><th scope="col">Tipo sugerido (automático)</th><th scope="col">Top genes (Wilcoxon)</th><th scope="col" class="num">Células</th><th scope="col">Leitura biológica</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><span class="dot c0"></span>0</td><td class="type">Células T</td><td><code>RPS12, RPS6, RPS27</code></td><td class="num">737</td><td>T naïve; genes ribossomais dominam</td></tr>
+                <tr><td><span class="dot c1"></span>1</td><td class="type">Células T</td><td><code>CCL5, NKG7, B2M</code></td><td class="num">332</td><td>T CD8+ citotóxicas</td></tr>
+                <tr><td><span class="dot c2"></span>2</td><td class="type">Células B</td><td><code>CD74, CD79A, HLA-DRA</code></td><td class="num">344</td><td>Linfócitos B</td></tr>
+                <tr><td><span class="dot c3"></span>3</td><td class="type">Células T</td><td><code>LTB, IL32, CD3D</code></td><td class="num">330</td><td>T CD4+ de memória</td></tr>
+                <tr><td><span class="dot c4"></span>4</td><td class="type">Monócitos FCGR3A+</td><td><code>LST1, COTL1, FCER1G</code></td><td class="num">196</td><td>Monócitos não clássicos (CD16+)</td></tr>
+                <tr><td><span class="dot c5"></span>5</td><td class="type">Plaquetas</td><td><code>PF4, PPBP, NRGN</code></td><td class="num">14</td><td>Plaquetas</td></tr>
+                <tr><td><span class="dot c6"></span>6</td><td class="type">Células NK</td><td><code>NKG7, GZMB, PRF1</code></td><td class="num">142</td><td>Natural killer</td></tr>
+                <tr><td><span class="dot c7"></span>7</td><td class="type">Monócitos CD14+</td><td><code>S100A9, LYZ, S100A8</code></td><td class="num">443</td><td>Monócitos clássicos</td></tr>
+                <tr><td><span class="dot c8"></span>8</td><td class="type">Células T</td><td><code>MALAT1, RPL32, RPS3</code></td><td class="num">65</td><td class="flag">Pouco específico; possível baixa qualidade</td></tr>
+                <tr><td><span class="dot c9"></span>9</td><td class="type">Células dendríticas</td><td><code>HLA-DPA1, HLA-DPB1, HLA-DRA</code></td><td class="num">35</td><td>Apresentadoras de antígeno</td></tr>
+              </tbody>
+            </table>
+          </div>
 
-## Commit de correção
-Foi necessário corrigir erros de sintaxe e o conteúdo do `docs/index.html`. O arquivo estava parcialmente truncado e com tags mal fechadas. Também foi feita a atualização do `README.md` para refletir a arquitetura atual, manter os badges e informar que os scripts legados foram movidos para `legacy/scripts`. Por fim, os arquivos foram commitados e enviados para `develop`.
+          <div class="gallery mt">
+            <figure class="figure">
+              <div class="figure-media"><img src="assets/img/marcadores_4.png" alt="Quatro UMAPs coloridos pela expressão de CD3E, MS4A1, LYZ e NKG7; cada gene acende na região do seu tipo celular." width="1674" height="1058" loading="lazy"></div>
+              <figcaption>
+                <span class="tag">Validação</span>
+                <h3>Cada marcador acende na região do seu tipo</h3>
+                <p>CD3E nas células T, MS4A1 nas B, LYZ nos monócitos, NKG7 nas NK. <a href="assets/img/marcadores_classicos.png">Ver os 15 marcadores</a>.</p>
+              </figcaption>
+            </figure>
+            <figure class="figure">
+              <div class="figure-media"><img src="assets/img/pca_variancia.png" alt="Curva de variância explicada por componente principal, em escala log, achatando por volta do 10º componente." width="806" height="586" loading="lazy"></div>
+              <figcaption>
+                <span class="tag">PCA</span>
+                <h3>A variância útil cabe em 10 componentes</h3>
+                <p>Depois do 10º componente cada eixo acrescenta pouco: justifica <code>n_pcs = 10</code>.</p>
+              </figcaption>
+            </figure>
+            <figure class="figure wide">
+              <div class="figure-media"><img src="assets/img/genes_marcadores.png" alt="Top 5 genes diferencialmente expressos em cada um dos 10 grupos, pelo teste de Wilcoxon." width="2909" height="1510" loading="lazy"></div>
+              <figcaption>
+                <span class="tag">Wilcoxon</span>
+                <h3>Os genes que mais distinguem cada grupo</h3>
+                <p>Ponto de partida para a leitura biológica: CD79A no grupo B, S100A8/9 e LYZ nos monócitos, GZMB e PRF1 nas NK.</p>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
 
-### Alterações realizadas
-- **docs/index.html**: reescrito por completo em HTML/CSS puro, mobile-first, com dark theme, sticky header, galeria de imagens com `width/height/loading/decoding`, slider acessível (aria), correção de CSP (sem `frame-ancestors` no meta, `img-src` com `https://img.shields.io`), correção de alinhamento e hierarquia visual.
-- **README.md**: atualizado com overview moderno, badges, link para `legacy/scripts`, estrutura e referências.
-- **Branching**: mantido em `develop` conforme fluxo GitFlow. `scripts/` já estavam na branch `legacy/scripts`.
+      <section class="section band" id="executar">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="eyebrow">Executar</p>
+            <h2>Do clone às figuras em quatro comandos</h2>
+            <p class="lead">Rode sempre a partir da raiz do repositório: <code>dados/</code>, <code>figuras/</code> e <code>resultados/</code> são relativos ao diretório atual.</p>
+          </header>
+          <div class="grid-2">
+            <div>
+              <div class="tabs" role="tablist" aria-label="Sistema operacional">
+                <button type="button" role="tab" id="tab-win" aria-selected="true" aria-controls="panel-win">Windows (PowerShell)</button>
+                <button type="button" role="tab" id="tab-nix" aria-selected="false" aria-controls="panel-nix">Linux / macOS</button>
+              </div>
+              <div class="copy-wrap" role="tabpanel" id="panel-win" aria-labelledby="tab-win">
+                <pre class="terminal"><code><span class="p">&gt; </span>git clone https://github.com/rubenslyra/Cell-Atlas.git; cd Cell-Atlas
+<span class="p">&gt; </span>python -m venv .venv; .\.venv\Scripts\Activate.ps1
+<span class="p">&gt; </span>pip install -e ".[dev]"
+<span class="p">&gt; </span>cellatlas run-all</code></pre>
+                <button class="copy-btn" type="button" data-copy="panel-win">Copiar</button>
+              </div>
+              <div class="copy-wrap" role="tabpanel" id="panel-nix" aria-labelledby="tab-nix" hidden>
+                <pre class="terminal"><code><span class="p">$ </span>git clone https://github.com/rubenslyra/Cell-Atlas.git &amp;&amp; cd Cell-Atlas
+<span class="p">$ </span>python -m venv .venv &amp;&amp; source .venv/bin/activate
+<span class="p">$ </span>pip install -e ".[dev]"
+<span class="p">$ </span>cellatlas run-all</code></pre>
+                <button class="copy-btn" type="button" data-copy="panel-nix">Copiar</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Três formas equivalentes de chamar</h3>
+              <ul class="check-list">
+                <li><code>cellatlas &lt;comando&gt;</code> com o pacote instalado (recomendado)</li>
+                <li><code>python -m cellatlas &lt;comando&gt;</code> sem depender do PATH</li>
+                <li><code>python main.py &lt;comando&gt;</code> direto do repositório, sem instalar</li>
+              </ul>
+              <p class="small muted">Comandos: <code>download</code>, <code>preprocess</code>, <code>cluster</code>, <code>annotate</code>, <code>compare</code>, <code>run-all</code>.</p>
+            </div>
+          </div>
 
-```bash
-git checkout develop
-git add docs/index.html README.md
-git -c commit.gpgsign=false commit -m "docs: refresh README and GitHub Pages for clean mobile-first UI"
-git push origin develop
-```
+          <div class="table-wrap mt">
+            <table>
+              <caption>cellatlas --help</caption>
+              <thead><tr><th scope="col">Opção</th><th scope="col">O que faz</th><th scope="col">Exemplo</th></tr></thead>
+              <tbody>
+                <tr><td><code>--config</code></td><td>Lê parâmetros de um arquivo TOML/JSON; chaves desconhecidas geram erro</td><td><code>--config cellatlas.example.toml</code></td></tr>
+                <tr><td><code>--resolutions</code></td><td>Resoluções do Leiden a testar</td><td><code>--resolutions 0.4 0.8 1.2</code></td></tr>
+                <tr><td><code>--target-resolution</code></td><td>Coluna de agrupamento usada na anotação</td><td><code>--target-resolution leiden_1.0</code></td></tr>
+                <tr><td><code>--seed</code></td><td>Semente de vizinhança, UMAP e Leiden</td><td><code>--seed 42</code></td></tr>
+                <tr><td><code>--data-dir</code>, <code>--figures-dir</code>, <code>--results-dir</code></td><td>Onde ler e gravar artefatos</td><td><code>--data-dir dados</code></td></tr>
+                <tr><td><code>compare</code></td><td>Compara a anotação com rótulos de especialistas (e com o CellTypist, opcional)</td><td><code>cellatlas compare --celltypist-model Immune_All_Low.pkl</code></td></tr>
+                <tr><td><code>--debug</code></td><td>Mostra o traceback completo em caso de erro</td><td><code>run-all --debug</code></td></tr>
+                <tr><td><code>--version</code></td><td>Versão instalada</td><td><code>cellatlas --version</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-O deploy via GitHub Actions seguirá normalmente. Com isso, o site fica mais limpo, sem warnings de CSP, badges funcionando e imagens carregando sem quebras.
+      <section class="section" id="arquitetura">
+        <div class="wrap grid-2">
+          <div>
+            <header class="section-head">
+              <p class="eyebrow">Arquitetura</p>
+              <h2>Um pacote, não um amontoado de scripts</h2>
+              <p class="lead">Cada etapa é uma classe atrás de uma interface (<code>IPreprocessor</code>, <code>IClusterer</code>, <code>IAnnotator</code>), com configuração única, gravação atômica dos <code>.h5ad</code> e testes de regressão.</p>
+            </header>
+            <ul class="check-list">
+              <li>Marcadores clássicos preservados em <code>.raw</code> mesmo fora dos genes variáveis (teste dedicado)</li>
+              <li>Grupos ordenados numericamente (0, 1, …, 10) no sumário</li>
+              <li>Semente única para resultados idênticos entre execuções</li>
+              <li>CI valida este site antes de publicar</li>
+            </ul>
+          </div>
+          <pre class="terminal"><code>Cell-Atlas/
+├── main.py                 <span class="c"># python main.py &lt;comando&gt;</span>
+├── cellatlas.example.toml  <span class="c"># parâmetros via --config</span>
+├── src/cellatlas/
+│   ├── __main__.py         <span class="c"># python -m cellatlas</span>
+│   ├── cli/                <span class="c"># argparse, códigos de saída</span>
+│   ├── core/               <span class="c"># Config, interfaces, Pipeline</span>
+│   ├── data/               <span class="c"># PBMC3kLoader, DataLoader</span>
+│   ├── analysis/           <span class="c"># QC/PCA, Leiden, anotação</span>
+│   └── utils/              <span class="c"># io atômico, logger, validação</span>
+├── tests/                  <span class="c"># pytest</span>
+├── tools/check_docs.py     <span class="c"># valida docs/ no CI</span>
+├── docs/                   <span class="c"># este site, treino e slides</span>
+├── dados/  figuras/  resultados/
+└── pyproject.toml</code></pre>
+        </div>
+      </section>
+
+      <section class="section band" id="apresentacao">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="eyebrow">Apresentação</p>
+            <h2>Material para explicar o projeto em 2 a 3 minutos</h2>
+            <p class="lead">Slides, roteiro e um treinador de voz que responde perguntas e simula uma entrevista técnica.</p>
+          </header>
+          <div class="promo promo-4">
+            <article class="card">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"></path><path d="M8 7h6M8 11h6"></path></svg></span>
+              <h3>Aprenda os fundamentos</h3>
+              <p>PBMC, células T, B, NK e monócitos, o PBMC3k, o arquivo .h5ad e o UMAP na prática, com quiz e referências em português e inglês.</p>
+              <a class="btn btn-primary" href="aprenda/">Abrir a aula</a>
+            </article>
+            <article class="card">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></span>
+              <h3>Cell-Atlas, em voz alta</h3>
+              <p>Pergunte pelo microfone e ouça a resposta; treine uma entrevista com feedback; ensaie o roteiro cronometrado.</p>
+              <a class="btn btn-ghost" href="treino/">Abrir o treino</a>
+            </article>
+            <article class="card">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span>
+              <h3>Slides do vídeo</h3>
+              <p>Sete slides 16:9 com as figuras reais e a narração nas notas. Setas para navegar, F para tela cheia, N para notas.</p>
+              <a class="btn btn-ghost" href="apresentacao/">Abrir os slides</a>
+            </article>
+            <article class="card">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M9 9h6M9 13h6M9 17h4"></path></svg></span>
+              <h3>Roteiro e guia</h3>
+              <p>Narração cena a cena, como ler cada figura, limitações e respostas para as perguntas mais prováveis.</p>
+              <a class="btn btn-ghost" href="https://github.com/rubenslyra/Cell-Atlas/blob/main/docs/apresentacao/ROTEIRO.md">Ler o roteiro</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="limites">
+        <div class="wrap grid-2">
+          <div>
+            <header class="section-head">
+              <p class="eyebrow">Limitações</p>
+              <h2>O que este resultado não afirma</h2>
+            </header>
+            <ul class="check-list">
+              <li>Os nomes são sugestões automáticas; a confirmação é biológica.</li>
+              <li>T CD8+ aparecem como “Células T”: o conjunto de marcadores é amplo.</li>
+              <li>O grupo 8 parece de baixa qualidade (MALAT1 e genes ribossomais).</li>
+              <li>Um doador e 2.700 células: valida o método, não é descoberta nova.</li>
+              <li>Versões diferentes de Scanpy/igraph podem mudar levemente a contagem de grupos.</li>
+            </ul>
+          </div>
+          <div>
+            <header class="section-head">
+              <p class="eyebrow">Referências</p>
+              <h2>Base metodológica</h2>
+            </header>
+            <ol class="ref-list">
+              <li>Wolf, Angerer &amp; Theis. SCANPY. <i>Genome Biol.</i> 19, 15 (2018). <a href="https://doi.org/10.1186/s13059-017-1382-0">doi:10.1186/s13059-017-1382-0</a></li>
+              <li>Traag, Waltman &amp; van Eck. From Louvain to Leiden. <i>Sci. Rep.</i> 9, 5233 (2019). <a href="https://doi.org/10.1038/s41598-019-41695-z">doi:10.1038/s41598-019-41695-z</a></li>
+              <li>Luecken &amp; Theis. Current best practices in scRNA-seq. <i>Mol. Syst. Biol.</i> 15, e8746 (2019). <a href="https://doi.org/10.15252/msb.20188746">doi:10.15252/msb.20188746</a></li>
+              <li>Zheng et al. Massively parallel digital transcriptional profiling of single cells. <i>Nat. Commun.</i> 8, 14049 (2017). <a href="https://doi.org/10.1038/ncomms14049">doi:10.1038/ncomms14049</a></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <span>Cell-Atlas v0.2.0 · Rubens Lyra · MIT</span>
+        <nav aria-label="Rodapé">
+          <a href="https://github.com/rubenslyra/Cell-Atlas">Repositório</a>
+          <a href="https://github.com/rubenslyra/Cell-Atlas/blob/main/README.md">README</a>
+          <a href="https://github.com/rubenslyra/Cell-Atlas/blob/main/ARTIGO_PROJETO.md">Artigo</a>
+          <a href="https://github.com/rubenslyra/Cell-Atlas/blob/main/CHANGELOG.md">Changelog</a>
+        </nav>
+      </div>
+    </footer>
+    <script src="assets/app.js" defer></script>
+  </body>
+</html>
