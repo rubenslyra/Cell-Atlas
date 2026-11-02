@@ -16,7 +16,24 @@
   </head>
   <body class="deck">
     <div class="deck-bar">
-      <a href="../">Cell-Atlas</a>
+      <nav class="menu" aria-label="Páginas do Cell-Atlas">
+        <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg><span>Menu</span></button>
+        <div class="menu-panel" id="site-menu" hidden>
+            
+            <p class="menu-group">Estudo</p>
+            <ul class="menu-list">
+              <li><a href="../aprenda/"><span class="menu-title">Aprenda os fundamentos</span><span class="menu-desc">PBMC, tipos celulares, .h5ad, UMAP e quiz</span></a></li>
+              <li><a href="../treino/"><span class="menu-title">Treino em voz alta</span><span class="menu-desc">Perguntas, entrevista simulada e ensaio</span></a></li>
+              <li><a href="../apresentacao/" aria-current="page"><span class="menu-title">Slides do vídeo</span><span class="menu-desc">7 slides com a narração nas notas</span></a></li>
+              <li><a href="https://github.com/rubenslyra/Cell-Atlas/blob/main/docs/apresentacao/ROTEIRO.md"><span class="menu-title">Roteiro e guia</span><span class="menu-desc">Narração, interpretação e perguntas prováveis</span></a></li>
+            </ul>
+            <p class="menu-group">Projeto</p>
+            <ul class="menu-list">
+              <li><a href="../"><span class="menu-title">Visão geral</span><span class="menu-desc">Resultados, pipeline e como executar</span></a></li>
+              <li><a href="https://github.com/rubenslyra/Cell-Atlas"><span class="menu-title">Repositório no GitHub</span><span class="menu-desc">Código, README e changelog</span></a></li>
+            </ul>
+          </div>
+      </nav>
       <span class="title">Slides do vídeo</span>
       <span class="counter" id="counter" aria-live="polite">1 / 7</span>
       <button type="button" id="prev" aria-label="Slide anterior">←</button>
@@ -183,6 +200,7 @@
       <button type="button" class="nav-zone next" id="zone-next" aria-label="Próximo slide"></button>
     </div>
     <div class="notes" id="notes" aria-live="polite"><b>Narração</b><span id="notes-text"></span></div>
+    <script src="../assets/app.js" defer></script>
     <script src="deck.js" defer></script>
   </body>
 </html>

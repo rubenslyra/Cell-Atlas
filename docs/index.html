@@ -22,22 +22,35 @@
 
     <header class="site-header">
       <div class="wrap nav">
-        <a class="brand" href="#inicio">
+        <a class="brand" href="./">
           <img class="brand-mark" src="assets/img/favicon.svg" alt="" width="28" height="28">
           Cell-Atlas
         </a>
-        <ul class="nav-links" aria-label="Seções">
-          <li><a href="#pipeline">Pipeline</a></li>
-          <li><a href="#resolucao">Resolução</a></li>
-          <li><a href="#resultados">Resultados</a></li>
-          <li><a href="#executar">Executar</a></li>
-          <li><a href="#apresentacao">Apresentação</a></li>
-          <li><a href="aprenda/">Aprenda</a></li>
-          <li><a href="https://github.com/rubenslyra/Cell-Atlas">GitHub</a></li>
-        </ul>
-        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro/escuro">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-        </button>
+        <div class="nav-actions">
+          <nav class="menu" aria-label="Páginas do Cell-Atlas">
+            <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-menu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg><span>Menu</span>
+            </button>
+            <div class="menu-panel" id="site-menu" hidden>
+            <p class="menu-group">Nesta página</p><ul class="menu-anchors"><li><a href="#pipeline">Pipeline</a></li><li><a href="#resolucao">Resolução</a></li><li><a href="#resultados">Resultados</a></li><li><a href="#executar">Executar</a></li><li><a href="#arquitetura">Arquitetura</a></li><li><a href="#limites">Limitações</a></li></ul>
+            <p class="menu-group">Estudo</p>
+            <ul class="menu-list">
+              <li><a href="aprenda/"><span class="menu-title">Aprenda os fundamentos</span><span class="menu-desc">PBMC, tipos celulares, .h5ad, UMAP e quiz</span></a></li>
+              <li><a href="treino/"><span class="menu-title">Treino em voz alta</span><span class="menu-desc">Perguntas, entrevista simulada e ensaio</span></a></li>
+              <li><a href="apresentacao/"><span class="menu-title">Slides do vídeo</span><span class="menu-desc">7 slides com a narração nas notas</span></a></li>
+              <li><a href="https://github.com/rubenslyra/Cell-Atlas/blob/main/docs/apresentacao/ROTEIRO.md"><span class="menu-title">Roteiro e guia</span><span class="menu-desc">Narração, interpretação e perguntas prováveis</span></a></li>
+            </ul>
+            <p class="menu-group">Projeto</p>
+            <ul class="menu-list">
+              <li><a href="./" aria-current="page"><span class="menu-title">Visão geral</span><span class="menu-desc">Resultados, pipeline e como executar</span></a></li>
+              <li><a href="https://github.com/rubenslyra/Cell-Atlas"><span class="menu-title">Repositório no GitHub</span><span class="menu-desc">Código, README e changelog</span></a></li>
+            </ul>
+          </div>
+          </nav>
+          <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro/escuro">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          </button>
+        </div>
       </div>
     </header>
 

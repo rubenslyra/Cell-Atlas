@@ -81,3 +81,22 @@
     });
   });
 })();
+
+/* ---------- unified menu (shared by every page) ---------- */
+(() => {
+  "use strict";
+  const btn = document.querySelector(".menu-btn");
+  const panel = btn && document.getElementById(btn.getAttribute("aria-controls"));
+  if (!btn || !panel) return;
+  const setOpen = (open) => {
+    btn.setAttribute("aria-expanded", String(open));
+    panel.hidden = !open;
+    if (open) panel.querySelector("a")?.focus({ preventScroll: true });
+  };
+  btn.addEventListener("click", (e) => { e.stopPropagation(); setOpen(panel.hidden); });
+  panel.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
+  document.addEventListener("click", (e) => { if (!panel.hidden && !e.target.closest(".menu")) setOpen(false); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !panel.hidden) { e.stopPropagation(); setOpen(false); btn.focus(); }
+  }, true);
+})();

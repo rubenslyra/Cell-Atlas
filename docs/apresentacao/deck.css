@@ -28,3 +28,7 @@ body.deck { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; backgro
 .nav-zone:focus-visible { outline: 2px solid #5fd0c6; outline-offset: -4px; }
 :fullscreen .deck-bar, :fullscreen .notes { display: none; }
 body.deck:fullscreen { grid-template-rows: minmax(0, 1fr); }
+.deck-bar button { min-height: 44px; }
+.deck-bar > a { min-height: 44px; display: inline-flex; align-items: center; }
+.deck-bar .menu-panel a { color: var(--ink); }
+.deck-bar .menu-btn[aria-expanded="true"] { background: #0f6e6a; border-color: #0f6e6a; color: #ffffff; }

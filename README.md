@@ -174,7 +174,7 @@ Cell-Atlas/
 │   ├── aprenda/               # Aula de fundamentos + quiz
 │   ├── treino/                # “Cell-Atlas, em voz alta” (treino com voz)
 │   ├── apresentacao/          # Slides do vídeo + ROTEIRO.md
-│   └── assets/                # CSS, JS e figuras
+│   └── assets/                # CSS, JS (menu único, tema) e figuras
 ├── dados/                     # .h5ad (ignorados pelo Git)
 ├── figuras/                   # Figuras geradas
 ├── resultados/                # Tabelas geradas
@@ -183,8 +183,6 @@ Cell-Atlas/
 ```
 
 Princípios: cada etapa é uma classe atrás de uma interface (`IDataLoader`, `IPreprocessor`, `IClusterer`, `IAnnotator`), configuração centralizada em `Config`, sem efeitos colaterais na importação, gravação atômica dos `.h5ad` e semente única (`random_state`) aplicada a vizinhança, UMAP e Leiden.
-
-Os scripts sequenciais originais (`01_baixar_dados.py` … `04_anotar.py`) estão preservados na branch [`legacy/scripts`](https://github.com/rubenslyra/Cell-Atlas/tree/legacy/scripts).
 
 ---
 

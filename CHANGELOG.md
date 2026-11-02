@@ -20,7 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`docs/apresentacao/`**: os 7 slides do vídeo com notas do apresentador e `ROTEIRO.md` (roteiro, guia de interpretação, perguntas prováveis).
 - Workflow `tests.yml` (pytest em Python 3.10 e 3.12) e arquivo `LICENSE` (MIT).
 - **Validação (`cellatlas compare`)**: compara a anotação com rótulos de especialistas do tutorial clássico (acurácia 96,8%, ARI 0,96) e, opcionalmente, com o CellTypist (`pip install -e ".[bench]"`); grava matriz de confusão e métricas por tipo.
+- **Menu único em todas as páginas** (Aprenda, Treino, Slides, Roteiro, Projeto), mobile-first, com alvos de toque ≥ 44 px para estudo no tablet.
 - **`docs/aprenda/`**: aula de fundamentos (PBMC, tipos celulares, história, aplicações, PBMC3k, .h5ad, UMAP, validação) com diagramas, quiz de 12 perguntas e referências em inglês e português; treino de voz ganhou respostas sobre esses temas.
+
+### Removed
+
+- Branch `legacy/scripts` e a referência a ela no README (scripts sequenciais substituídos pela CLI).
 
 ### Fixed
 

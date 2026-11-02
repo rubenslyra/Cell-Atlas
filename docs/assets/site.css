@@ -114,13 +114,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .nav { display: flex; align-items: center; gap: 16px; min-height: 60px; }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-family: var(--font-display); }
 .brand-mark { width: 28px; height: 28px; flex: none; }
-.nav-links { display: flex; gap: 4px; list-style: none; margin: 0 0 0 auto; padding: 0; overflow-x: auto; scrollbar-width: none; }
-.nav-links::-webkit-scrollbar { display: none; }
-.nav-links a { display: block; padding: 6px 10px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-size: var(--step--1); white-space: nowrap; }
-.nav-links a:hover, .nav-links a[aria-current="page"] { background: var(--surface-2); color: var(--ink); }
 .theme-toggle { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: grid; place-items: center; }
 .theme-toggle svg { width: 18px; height: 18px; }
-@media (max-width: 760px) { .nav { flex-wrap: wrap; padding-block: 8px; } .nav-links { order: 3; width: 100%; margin: 0; } }
 
 /* ---------- generic blocks ---------- */
 .section { padding-block: clamp(48px, 7vw, 88px); }
@@ -257,3 +252,31 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .mt { margin-top: 28px; }
 .promo.promo-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 760px) { .promo.promo-4 { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- unified menu (mobile-first) ----------
+   Phone/tablet portrait: a full-width sheet under the header.
+   ≥ 720px: a dropdown anchored to the Menu button. */
+.nav { justify-content: space-between; }
+.nav-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.menu { position: static; }
+.menu-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 var(--step-0) var(--font-body); cursor: pointer; }
+.menu-btn svg { width: 20px; height: 20px; }
+.menu-btn[aria-expanded="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.theme-toggle { width: 44px; height: 44px; }
+.menu-panel { position: fixed; left: 0; right: 0; top: calc(61px + env(safe-area-inset-top, 0px)); z-index: 40; max-height: calc(100dvh - 61px - env(safe-area-inset-top, 0px)); overflow-y: auto; overscroll-behavior: contain; background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: var(--shadow); padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); color: var(--ink); text-align: left; }
+.menu-group { font: 600 .75rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 14px 4px 6px; }
+.menu-group:first-child { margin-top: 4px; }
+.menu-list, .menu-anchors { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.menu-anchors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.menu-list a, .menu-anchors a { display: grid; gap: 2px; min-height: 44px; align-content: center; padding: 10px 12px; border-radius: 10px; text-decoration: none; color: var(--ink); }
+.menu-list a:hover, .menu-anchors a:hover, .menu-list a:focus-visible, .menu-anchors a:focus-visible { background: var(--surface-2); }
+.menu-list a[aria-current="page"] { background: var(--accent-soft); }
+.menu-title { font-weight: 600; }
+.menu-desc { font-size: var(--step--1); color: var(--ink-3); }
+@media (min-width: 720px) {
+  .menu { position: relative; }
+  .menu-panel { position: absolute; left: auto; right: 0; top: calc(100% + 8px); width: 380px; max-height: min(78vh, 640px); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; }
+}
+/* Comfortable touch targets everywhere (tablet study). */
+.btn, .tabs button, .seg label, .copy-btn { min-height: 44px; }
+.pill[href] { min-height: 36px; }

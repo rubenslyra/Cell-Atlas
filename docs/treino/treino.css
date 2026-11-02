@@ -62,3 +62,6 @@ details.card summary { cursor: pointer; list-style: revert; }
 .tr-check { display: flex; gap: 8px; align-items: center; font-size: var(--step--1); color: var(--ink-2); }
 .tr-facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: var(--step--1); color: var(--ink-2); }
 .tr-facts b { font: 700 var(--step-1) var(--font-display); color: var(--ink); margin-right: 6px; font-variant-numeric: tabular-nums; }
+/* touch targets ≥ 44px (tablet study) */
+.tr-modes button, .tr-chips button { min-height: 44px; }
+.msg .replay { min-height: 44px; padding: 0 4px; }
